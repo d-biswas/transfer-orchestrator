@@ -48,6 +48,10 @@ dependencies {
     // PostgreSQL Driver
     runtimeOnly 'org.postgresql:postgresql:42.7.3'
 
+    // Flyway for database migrations
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+
     // QueryDSL
     implementation 'io.github.openfeign.querydsl:querydsl-jpa:7.1'
     annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:7.1:jakarta'
