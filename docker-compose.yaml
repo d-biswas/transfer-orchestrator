@@ -1,9 +1,112 @@
 services:
-  postgres:
-    image: 'postgres:latest'
-    environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+  transfer-orchestrator:
+    image: transfer-orchestrator:0.0.0-SNAPSHOT
+    hostname: transfer-orchestrator-api
+    container_name: transfer-orchestrator-service
     ports:
-      - '5432'
+      - "8080:8080"
+      - "5006:5006"
+    environment:
+      TZ: UTC
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
+
+    depends_on:
+      - postgres
+    networks:
+      - transfer-orchestrator
+
+  postgres:
+    image: postgres:16.9
+    container_name: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: orchestrator
+      POSTGRES_USER: orchestrator
+      POSTGRES_PASSWORD: orchestrator
+    volumes:
+      - pg-orchestrator-data:/var/lib/postgresql/data
+    networks:
+      - transfer-orchestrator
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U orchestrator -d orchestrator -h localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --loglevel warning --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-orchestrator-data:/data
+    networks:
+      - transfer-orchestrator
+
+  zookeeper:
+    image: zookeeper:3.6.2
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper-orchestrator-data:/data
+      - zookeeper-orchestrator-logs:/datalog
+    restart: always
+    networks:
+      - transfer-orchestrator
+
+  kafka:
+    image: wurstmeister/kafka:2.13-2.7.1
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://kafka:9092, EXTERNAL://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092, EXTERNAL://localhost:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - kafka-orchestrator-data:/var/lib/kafka/data
+    restart: always
+    networks:
+      - transfer-orchestrator
+
+  kafka-ui:
+    container_name: kafka-ui
+    restart: always
+    image: provectuslabs/kafka-ui:v0.7.2
+    ports:
+      - "8081:8081"
+    depends_on:
+      - kafka
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+      KAFKA_CLUSTERS_0_NAME: 'Local Kafka Cluster'
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      SERVER_PORT: '8081'
+    networks:
+      - transfer-orchestrator
+
+volumes:
+  pg-orchestrator-data:
+  redis-orchestrator-data:
+  kafka-orchestrator-data:
+  zookeeper-orchestrator-data:
+  zookeeper-orchestrator-logs:
+
+networks:
+  transfer-orchestrator:
+    driver: bridge
