@@ -7,6 +7,7 @@ import com.company.orchestrator.domain.model.converter.TransferStatusConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serial;
 import java.time.Instant;
 
 @Entity
@@ -17,6 +18,8 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransferRequestEntity extends BaseEntity implements Auditable, Versionable {
+    @Serial
+    private static final long serialVersionUID = -5913515077419185625L;
 
     @Column(name = "consumer_id", nullable = false, length = 100)
     private String consumerId;

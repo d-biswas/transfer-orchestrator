@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.io.Serial;
 import java.time.Instant;
 import java.util.Map;
 
@@ -18,6 +19,8 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuditLogEntity extends BaseEntity {
+    @Serial
+    private static final long serialVersionUID = 6638246574655365583L;
 
     @Column(name = "transfer_id")
     private Long transferId;

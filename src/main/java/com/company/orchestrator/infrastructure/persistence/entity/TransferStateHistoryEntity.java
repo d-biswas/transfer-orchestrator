@@ -5,6 +5,7 @@ import com.company.orchestrator.domain.model.converter.TransferStatusConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serial;
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,6 +16,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransferStateHistoryEntity extends BaseEntity {
+    @Serial
+    private static final long serialVersionUID = 6160626839751318135L;
 
     @Column(name = "transfer_id", nullable = false)
     private Long transferId;
