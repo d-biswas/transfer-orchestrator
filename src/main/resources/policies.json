@@ -1,0 +1,25 @@
+{
+  "policies": [
+    {
+      "type": "TimeBasedPolicy",
+      "name": "BusinessHoursPolicy",
+      "startTime": "08:00",
+      "endTime": "18:00"
+    },
+    {
+      "type": "RateLimitPolicy",
+      "name": "RateLimit100Policy",
+      "maxRequestsPerHour": 100
+    },
+    {
+      "type": "GeographicPolicy",
+      "name": "EURegionPolicy",
+      "allowedRegions": ["EU", "DE", "FR"]
+    },
+    {
+      "type": "UsagePolicy",
+      "name": "QualityAnalysisPolicy",
+      "allowedUsage": "QualityAnalysis"
+    }
+  ]
+}
