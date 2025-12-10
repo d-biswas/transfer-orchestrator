@@ -34,9 +34,16 @@ public class RateLimitPolicy implements Policy {
             timestamps.pollFirst();
         }
 
+        // Check if consumer is under the limit
         boolean allowed = timestamps.size() < maxRequests;
+
         if (allowed) {
             timestamps.addLast(now);
+        }
+
+        //cleanup requestLogs to free memory
+        if (timestamps.isEmpty()) {
+            requestLogs.remove(consumerId);
         }
 
         return new PolicyEvaluationResult(this, allowed,
