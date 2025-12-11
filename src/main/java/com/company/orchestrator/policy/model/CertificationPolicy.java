@@ -1,9 +1,9 @@
 package com.company.orchestrator.policy.model;
 
 import com.company.orchestrator.domain.model.TransferRequest;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CertificationPolicy implements Policy {
 
     private final String requiredCertification;

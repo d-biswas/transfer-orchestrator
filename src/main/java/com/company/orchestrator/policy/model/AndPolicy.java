@@ -1,12 +1,12 @@
 package com.company.orchestrator.policy.model;
 
 import com.company.orchestrator.domain.model.TransferRequest;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.ArrayList;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AndPolicy implements Policy {
 
     private final List<Policy> policies;
@@ -16,8 +16,8 @@ public class AndPolicy implements Policy {
         List<String> violations = new ArrayList<>();
         for (Policy p : policies) {
             PolicyEvaluationResult result = p.evaluate(request);
-            if (!result.isAllowed()) {
-                violations.add(result.getViolationReason());
+            if (!result.allowed()) {
+                violations.add(result.violationReason());
             }
         }
         boolean allowed = violations.isEmpty();

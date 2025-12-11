@@ -55,9 +55,9 @@ public class DatabaseConfig{
         return new HikariDataSource(config);
     }
 
-    @Bean
+    @Bean(name = "entityManagerFactory")
     @Primary
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean() {
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
         bean.setDataSource(dataSource());
         bean.setPackagesToScan("com.company.orchestrator.infrastructure.persistence.entity");
@@ -69,7 +69,7 @@ public class DatabaseConfig{
     @Bean(name = "transactionManager")
     public PlatformTransactionManager transactionManager() {
         JpaTransactionManager manager = new JpaTransactionManager();
-        manager.setEntityManagerFactory(entityManagerFactoryBean().getObject());
+        manager.setEntityManagerFactory(entityManagerFactory().getObject());
         return manager;
     }
 
@@ -79,7 +79,8 @@ public class DatabaseConfig{
         bean.setJpaVendorAdapter(adapter);
 
         Map<String, String> props = new HashMap<>();
-        props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+        props.put("hibernate.dialect", environment.getProperty("spring.jpa.properties.hibernate.dialect",
+                environment.getProperty("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQLDialect")));
         props.put("hibernate.hbm2ddl.auto", environment.getProperty("spring.jpa.hibernate.ddl-auto", "validate"));
         props.put("hibernate.show_sql", environment.getProperty("spring.jpa.show-sql", "false"));
         props.put("hibernate.format_sql", environment.getProperty("spring.jpa.properties.hibernate.format_sql", "false"));
@@ -90,6 +91,12 @@ public class DatabaseConfig{
         props.put("hibernate.order_updates", environment.getProperty("spring.jpa.properties.hibernate.order_updates", "true"));
         props.put("hibernate.globally_quoted_identifiers",
                 environment.getProperty("spring.jpa.properties.hibernate.globally_quoted_identifiers", "false"));
+
+        // Add default_schema if configured
+        String defaultSchema = environment.getProperty("spring.jpa.properties.hibernate.default_schema");
+        if (defaultSchema != null && !defaultSchema.isEmpty()) {
+            props.put("hibernate.default_schema", defaultSchema);
+        }
 
         bean.setJpaPropertyMap(props);
     }

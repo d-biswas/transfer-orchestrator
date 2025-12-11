@@ -1,11 +1,11 @@
 package com.company.orchestrator.policy.model;
 
 import com.company.orchestrator.domain.model.TransferRequest;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GeographicPolicy implements Policy {
 
     private final List<String> allowedRegions;

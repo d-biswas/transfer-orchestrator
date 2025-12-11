@@ -1,6 +1,6 @@
 services:
   transfer-orchestrator:
-    image: transfer-orchestrator:0.0.0-SNAPSHOT
+    image: transfer-orchestrator:0.0.1-SNAPSHOT
     hostname: transfer-orchestrator-api
     container_name: transfer-orchestrator-service
     ports:
@@ -9,9 +9,23 @@ services:
     environment:
       TZ: UTC
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
+      # Database configuration
+      ORCHESTRATOR_DB_URL: "jdbc:postgresql://postgres:5432/orchestrator"
+      ORCHESTRATOR_DB_USER: "orchestrator"
+      ORCHESTRATOR_DB_PASSWORD: "orchestrator"
+      # Redis configuration
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      # Kafka configuration
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
     networks:
       - transfer-orchestrator
 
@@ -71,8 +85,8 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_LISTENERS: INTERNAL://kafka:9092, EXTERNAL://localhost:29092
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092, EXTERNAL://localhost:29092
+      KAFKA_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:29092
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0

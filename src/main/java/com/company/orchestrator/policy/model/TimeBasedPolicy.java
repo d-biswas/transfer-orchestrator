@@ -1,12 +1,12 @@
 package com.company.orchestrator.policy.model;
 
 import com.company.orchestrator.domain.model.TransferRequest;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalTime;
 import java.time.ZoneId;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TimeBasedPolicy implements Policy {
 
     private final LocalTime startTime;
