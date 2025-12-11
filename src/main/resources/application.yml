@@ -78,8 +78,20 @@ spring:
     properties:
       security.protocol: PLAINTEXT
     topics:
-      transfer-state-changes:
-        name: transfer-state-events
+      transfer-requested:
+        name: transfer.requested
+      policy-approved:
+        name: policy.approved
+      policy-rejected:
+        name: policy.rejected
+      transfer-negotiation-started:
+        name: transfer.negotiation.started
+      transfer-negotiation-completed:
+        name: transfer.negotiation.completed
+      transfer-completed:
+        name: transfer.completed
+      transfer-failed:
+        name: transfer.failed
       dlq:
         name: orchestrator-dlq
     topic-config:

@@ -72,8 +72,8 @@ public class AuditServiceImpl implements AuditService {
         }
 
         AuditEventType eventType = result.allowed() ?
-                AuditEventType.TRANSFER_APPROVED :
-                AuditEventType.TRANSFER_DENIED;
+                AuditEventType.POLICY_EVALUATION_PASSED :
+                AuditEventType.POLICY_EVALUATION_FAILED;
 
         AuditLogEntity auditLog = AuditLogEntity.builder()
                 .transferId(parseTransferId(transferId))
@@ -126,8 +126,8 @@ public class AuditServiceImpl implements AuditService {
         }
 
         AuditEventType eventType = result.isSuccess() ?
-                AuditEventType.TRANSFER_COMPLETED :
-                AuditEventType.TRANSFER_FAILED;
+                AuditEventType.TRANSFER_PROCESS_COMPLETED :
+                AuditEventType.TRANSFER_PROCESS_FAILED;
 
         AuditLogEntity auditLog = AuditLogEntity.builder()
                 .transferId(parseTransferId(transferId))
@@ -176,20 +176,20 @@ public class AuditServiceImpl implements AuditService {
                 .count();
 
         long successfulTransfers = logsInRange.stream()
-                .filter(log -> log.getEventType() == AuditEventType.TRANSFER_COMPLETED)
+                .filter(log -> log.getEventType() == AuditEventType.TRANSFER_PROCESS_COMPLETED)
                 .count();
 
         long failedTransfers = logsInRange.stream()
-                .filter(log -> log.getEventType() == AuditEventType.TRANSFER_FAILED)
+                .filter(log -> log.getEventType() == AuditEventType.TRANSFER_PROCESS_FAILED)
                 .count();
 
         long deniedTransfers = logsInRange.stream()
-                .filter(log -> log.getEventType() == AuditEventType.TRANSFER_DENIED)
+                .filter(log -> log.getEventType() == AuditEventType.POLICY_EVALUATION_FAILED)
                 .count();
 
         // Policy violation summary
         Map<String, Long> policyViolations = logsInRange.stream()
-                .filter(log -> log.getEventType() == AuditEventType.TRANSFER_DENIED)
+                .filter(log -> log.getEventType() == AuditEventType.POLICY_EVALUATION_FAILED)
                 .collect(Collectors.groupingBy(
                         log -> (String) log.getMetadata().getOrDefault("policyType", "UNKNOWN"),
                         Collectors.counting()
