@@ -1,6 +1,6 @@
 package com.company.orchestrator.policy.model;
 
-import com.company.orchestrator.domain.model.TransferRequest;
+import com.company.orchestrator.api.dto.TransferRequestDto;
 
 import java.time.Instant;
 import java.time.Duration;
@@ -23,7 +23,7 @@ public class RateLimitPolicy implements Policy {
     }
 
     @Override
-    public PolicyEvaluationResult evaluate(TransferRequest request) {
+    public PolicyEvaluationResult evaluate(TransferRequestDto request) {
         String consumerId = request.getConsumerId();
         Instant now = request.getRequestTime().atZone(java.time.ZoneId.systemDefault()).toInstant();
 

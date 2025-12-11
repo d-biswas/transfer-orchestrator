@@ -1,6 +1,6 @@
 package com.company.orchestrator.policy.model;
 
-import com.company.orchestrator.domain.model.TransferRequest;
+import com.company.orchestrator.api.dto.TransferRequestDto;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -12,7 +12,7 @@ public class AndPolicy implements Policy {
     private final List<Policy> policies;
 
     @Override
-    public PolicyEvaluationResult evaluate(TransferRequest request) {
+    public PolicyEvaluationResult evaluate(TransferRequestDto request) {
         List<String> violations = new ArrayList<>();
         for (Policy p : policies) {
             PolicyEvaluationResult result = p.evaluate(request);

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serial;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -31,5 +32,5 @@ public class TransferStateHistoryEntity extends BaseEntity {
     private TransferStatus toState;
 
     @Column(name = "changed_at", nullable = false)
-    private LocalDateTime changedAt;
+    private Instant changedAt;
 }
