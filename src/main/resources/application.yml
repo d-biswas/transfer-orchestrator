@@ -72,6 +72,8 @@ spring:
       retry:
         max-attempts: "${MAX_RETRY_ATTEMPTS:5}"
         backoff-delay: "${BACKOFF_DELAY:5000}"
+        backoff-multiplier: "${BACKOFF_MULTIPLIER:2.0}"
+        max-interval: "${MAX_RETRY_INTERVAL_MS:30000}"
     listener:
       concurrency: "${KAFKA_LISTENER_CONCURRENCY:5}"
       ack-mode: manual
@@ -88,6 +90,8 @@ spring:
         name: transfer.negotiation.started
       transfer-negotiation-completed:
         name: transfer.negotiation.completed
+      transfer-in-progress:
+        name: transfer.in-progress
       transfer-completed:
         name: transfer.completed
       transfer-failed:

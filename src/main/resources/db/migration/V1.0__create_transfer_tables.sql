@@ -13,6 +13,9 @@ CREATE TABLE orchestrator.transfer_requests (
     asset_id VARCHAR(100) NOT NULL,
     data_type INTEGER NOT NULL,
     status INTEGER NOT NULL,
+    edc_negotiation_id VARCHAR(255),
+    edc_transfer_process_id VARCHAR(255),
+    edc_contract_agreement_id VARCHAR(255),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     version BIGINT DEFAULT 0

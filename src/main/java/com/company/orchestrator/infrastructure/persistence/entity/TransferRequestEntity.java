@@ -38,6 +38,15 @@ public class TransferRequestEntity extends BaseEntity implements Auditable, Vers
     @Convert(converter = TransferStatusConverter.class)
     private TransferStatus status;
 
+    @Column(name = "edc_negotiation_id", length = 255)
+    private String edcNegotiationId;
+
+    @Column(name = "edc_transfer_process_id", length = 255)
+    private String edcTransferProcessId;
+
+    @Column(name = "edc_contract_agreement_id", length = 255)
+    private String edcContractAgreementId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

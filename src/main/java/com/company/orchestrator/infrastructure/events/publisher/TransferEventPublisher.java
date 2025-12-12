@@ -1,8 +1,12 @@
 package com.company.orchestrator.infrastructure.events.publisher;
 
-import com.company.orchestrator.infrastructure.events.model.*;
+import com.company.orchestrator.infrastructure.events.model.BaseTransferEvent;
+import com.company.orchestrator.infrastructure.events.model.TransferCompletedEvent;
+import com.company.orchestrator.infrastructure.events.model.TransferFailedEvent;
+import com.company.orchestrator.infrastructure.events.model.TransferInProgressEvent;
+import com.company.orchestrator.infrastructure.props.KafkaProperties;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -12,75 +16,30 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Publisher for transfer-related Kafka events
  */
-@Slf4j
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class TransferEventPublisher {
 
     private final KafkaTemplate<String, BaseTransferEvent> kafkaTemplate;
+    private final KafkaProperties kafkaProperties;
 
     private static final String SYSTEM_ACTOR = "SYSTEM";
 
     /**
-     * Publish transfer requested event
+     * Publish transfer in progress event
      */
-    public void publishTransferRequested(Long transferId, String consumerId, String providerId,
-                                         String assetId, String dataType) {
-        TransferRequestedEvent event = TransferRequestedEvent.builder()
+    public void publishTransferInProgress(Long transferId, String edcTransferProcessId, String edcState) {
+        TransferInProgressEvent event = TransferInProgressEvent.builder()
                 .transferId(transferId)
-                .consumerId(consumerId)
-                .providerId(providerId)
-                .assetId(assetId)
-                .dataType(dataType)
+                .edcTransferProcessId(edcTransferProcessId)
+                .edcState(edcState)
                 .timestamp(Instant.now())
                 .actor(SYSTEM_ACTOR)
                 .build();
 
-        publish("transfer.requested", event);
-    }
-
-    /**
-     * Publish policy approved event
-     */
-    public void publishPolicyApproved(Long transferId, String policyType) {
-        PolicyApprovedEvent event = PolicyApprovedEvent.builder()
-                .transferId(transferId)
-                .policyType(policyType)
-                .timestamp(Instant.now())
-                .actor(SYSTEM_ACTOR)
-                .build();
-
-        publish("policy.approved", event);
-    }
-
-    /**
-     * Publish policy rejected event
-     */
-    public void publishPolicyRejected(Long transferId, String policyType, String violationReason) {
-        PolicyRejectedEvent event = PolicyRejectedEvent.builder()
-                .transferId(transferId)
-                .policyType(policyType)
-                .violationReason(violationReason)
-                .timestamp(Instant.now())
-                .actor(SYSTEM_ACTOR)
-                .build();
-
-        publish("policy.rejected", event);
-    }
-
-    /**
-     * Publish transfer negotiation started event
-     */
-    public void publishNegotiationStarted(Long transferId, String providerId, String assetId) {
-        TransferNegotiationStartedEvent event = TransferNegotiationStartedEvent.builder()
-                .transferId(transferId)
-                .providerId(providerId)
-                .assetId(assetId)
-                .timestamp(Instant.now())
-                .actor(SYSTEM_ACTOR)
-                .build();
-
-        publish("transfer.negotiation.started", event);
+        String topic = kafkaProperties.getTopics().get("transfer-in-progress").getName();
+        publish(topic, event);
     }
 
     /**
@@ -95,7 +54,8 @@ public class TransferEventPublisher {
                 .actor(SYSTEM_ACTOR)
                 .build();
 
-        publish("transfer.completed", event);
+        String topic = kafkaProperties.getTopics().get("transfer-completed").getName();
+        publish(topic, event);
     }
 
     /**
@@ -110,7 +70,8 @@ public class TransferEventPublisher {
                 .actor(SYSTEM_ACTOR)
                 .build();
 
-        publish("transfer.failed", event);
+        String topic = kafkaProperties.getTopics().get("transfer-failed").getName();
+        publish(topic, event);
     }
 
     /**

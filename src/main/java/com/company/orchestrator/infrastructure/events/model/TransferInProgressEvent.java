@@ -8,24 +8,25 @@ import lombok.experimental.SuperBuilder;
 import java.io.Serial;
 
 /**
- * Event fired when a transfer is requested
- * Topic: transfer.requested
+ * Event fired when transfer process starts (data transfer in progress)
+ * Topic: transfer.in-progress
  */
 @Getter
 @Setter
 @SuperBuilder
 @NoArgsConstructor
-public class TransferRequestedEvent extends BaseTransferEvent {
+public class TransferInProgressEvent extends BaseTransferEvent {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private String consumerId;
-    private String providerId;
-    private String assetId;
-    private String dataType;
+    /** EDC transfer process ID */
+    private String edcTransferProcessId;
+
+    /** EDC state from callback */
+    private String edcState;
 
     @Override
     public String getEventType() {
-        return "transfer.requested";
+        return "transfer.in-progress";
     }
 }

@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TransferResponseDto {
+public class TransferResultDto {
     private Long transferId;
     private TransferStatus status;
     private String message;

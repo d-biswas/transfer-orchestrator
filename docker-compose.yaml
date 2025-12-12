@@ -18,11 +18,12 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       # Kafka configuration
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      # EDC configuration
-      EDC_MANAGEMENT_URL: "http://edc-connector:8181/management"
-      EDC_CONTROL_PLANE_URL: "http://edc-connector:8182/api/dsp"
-      EDC_DATA_PLANE_URL: "http://edc-connector:8183/api/control"
-      EDC_API_KEY: "my-edc-connector-key"
+      # EDC configuration (Provider EDC endpoints)
+      EDC_MANAGEMENT_URL: "http://provider-edc-controlplane:8181/management"
+      EDC_CONTROL_PLANE_URL: "http://provider-edc-controlplane:8282/api/v1/dsp"
+      EDC_DATA_PLANE_URL: "http://provider-edc-dataplane:8185/api/public"
+      EDC_API_KEY: "provider-edc-key"
+      EDC_PARTICIPANT_ID: "provider-bpn-123"
 
     depends_on:
       postgres:
@@ -31,7 +32,9 @@ services:
         condition: service_started
       kafka:
         condition: service_started
-      edc-connector:
+      provider-edc-controlplane:
+        condition: service_healthy
+      provider-edc-dataplane:
         condition: service_started
     networks:
       - transfer-orchestrator
@@ -121,20 +124,46 @@ services:
     networks:
       - transfer-orchestrator
 
-  # EDC Connector (Minimal for development)
-  edc-connector:
+  # Provider EDC Connector (Data Provider)
+  provider-edc-controlplane:
     image: tractusx/edc-controlplane-memory:0.7.3
-    container_name: edc-connector
+    container_name: provider-edc-controlplane
+    hostname: provider-edc-controlplane
     ports:
       - "8181:8181"  # Management API
-      - "8182:8182"  # DSP Protocol
+      - "8282:8282"  # DSP Protocol
     environment:
       WEB_HTTP_MANAGEMENT_PORT: 8181
       WEB_HTTP_MANAGEMENT_PATH: /management
-      WEB_HTTP_PROTOCOL_PORT: 8182
-      WEB_HTTP_PROTOCOL_PATH: /api/dsp
-      EDC_API_AUTH_KEY: my-edc-connector-key
-      EDC_PARTICIPANT_ID: my-edc-connector-id
+      WEB_HTTP_PROTOCOL_PORT: 8282
+      WEB_HTTP_PROTOCOL_PATH: /api/v1/dsp
+      EDC_API_AUTH_KEY: provider-edc-key
+      EDC_PARTICIPANT_ID: provider-bpn-123
+      EDC_CONNECTOR_NAME: provider-edc
+    networks:
+      - transfer-orchestrator
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8181/management/check/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Provider EDC Data Plane (Handles actual data transfer)
+  provider-edc-dataplane:
+    image: tractusx/edc-dataplane-hashicorp-vault:0.7.3
+    container_name: provider-edc-dataplane
+    hostname: provider-edc-dataplane
+    ports:
+      - "8185:8185"  # Data Plane Public API
+    environment:
+      WEB_HTTP_PUBLIC_PORT: 8185
+      WEB_HTTP_PUBLIC_PATH: /api/public
+      WEB_HTTP_CONTROL_PORT: 8186
+      WEB_HTTP_CONTROL_PATH: /api/control
+      EDC_DATAPLANE_TOKEN_VALIDATION_ENDPOINT: http://provider-edc-controlplane:8181/management/token
+    depends_on:
+      provider-edc-controlplane:
+        condition: service_healthy
     networks:
       - transfer-orchestrator
 

@@ -22,6 +22,9 @@ public class KafkaProperties {
     /** Consumer configuration */
     private Consumer consumer;
 
+    /** Listener configuration */
+    private Listener listener;
+
     /** Default topic configuration */
     private TopicConfig topicConfig;
 
@@ -51,8 +54,21 @@ public class KafkaProperties {
     @Getter
     @Setter
     public static class Consumer {
+        /** Consumer group ID */
+        private String groupId;
+
         /** Retry configuration for failed message consumption */
         private Retry retry;
+    }
+
+    @Getter
+    @Setter
+    public static class Listener {
+        /** Number of concurrent consumer threads */
+        private Integer concurrency;
+
+        /** Acknowledgment mode (MANUAL, RECORD, BATCH, etc.) */
+        private String ackMode;
     }
 
     @Getter
@@ -63,6 +79,12 @@ public class KafkaProperties {
 
         /** Delay between retries in milliseconds */
         private Long backoffDelay;
+
+        /** Exponential backoff multiplier for retries */
+        private Double backoffMultiplier;
+
+        /** Maximum interval between retries in milliseconds */
+        private Long maxInterval;
     }
 
     @Getter

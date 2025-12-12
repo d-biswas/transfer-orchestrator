@@ -34,14 +34,15 @@ public class EdcConnectorClientImpl implements EdcConnectorClient {
     @Override
     @SuppressWarnings("unchecked")
     public ContractNegotiationResult negotiateContract(ContractOffer offer) {
-        log.info("Initiating contract negotiation for asset: {} with provider: {}",
+        log.info("Initiating async contract negotiation for asset: {} with provider: {}",
                 offer.getAssetId(), offer.getProviderId());
 
         try {
             // Build contract negotiation request
             Map<String, Object> request = buildContractNegotiationRequest(offer);
 
-            // Send negotiation request
+            // Send negotiation request ASYNCHRONOUSLY - do not block
+            // EDC will send status updates to the callback URL provided in the request
             Map<String, Object> response = edcWebClient.post()
                     .uri(CONTRACT_NEGOTIATIONS_PATH)
                     .bodyValue(request)
@@ -56,7 +57,7 @@ public class EdcConnectorClientImpl implements EdcConnectorClient {
                     .bodyToMono(Map.class)
                     .retryWhen(Retry.backoff(edcProperties.getMaxRetries(),
                             Duration.ofMillis(edcProperties.getRetryBackoffMillis())))
-                    .block(Duration.ofSeconds(30));
+                    .block(Duration.ofSeconds(10)); // Only wait for initial response, not completion
 
             if (response == null) {
                 throw new IllegalStateException("EDC returned null response");
@@ -69,14 +70,16 @@ public class EdcConnectorClientImpl implements EdcConnectorClient {
                 throw new IllegalStateException("EDC response missing negotiation ID");
             }
 
-            log.info("Contract negotiation initiated successfully. NegotiationId: {}, State: {}",
+            log.info("Contract negotiation initiated successfully (async). NegotiationId: {}, Initial State: {}",
                     negotiationId, state);
+            log.info("EDC will send status updates to callback URL: {}", offer.getConsumerCallbackUrl());
 
-            // Poll for negotiation completion
-            return pollNegotiationUntilComplete(negotiationId);
+            // Return immediately with negotiation ID - do NOT wait for completion
+            // Further state updates will come via EDC callbacks to EdcCallbackController
+            return ContractNegotiationResult.success(negotiationId, null, state);
 
         } catch (Exception e) {
-            log.error("Failed to negotiate contract for asset: {}", offer.getAssetId(), e);
+            log.error("Failed to initiate contract negotiation for asset: {}", offer.getAssetId(), e);
             return ContractNegotiationResult.failure(null, "FAILED", e.getMessage());
         }
     }
@@ -199,58 +202,6 @@ public class EdcConnectorClientImpl implements EdcConnectorClient {
             log.error("Failed to terminate transfer: {}", transferProcessId, e);
             throw new RuntimeException("Failed to terminate transfer", e);
         }
-    }
-
-    /**
-     * Polls negotiation status until it reaches a terminal state
-     */
-    @SuppressWarnings("unchecked")
-    private ContractNegotiationResult pollNegotiationUntilComplete(String negotiationId) {
-        long startTime = System.currentTimeMillis();
-        long timeout = edcProperties.getNegotiationTimeoutSeconds() * 1000L;
-
-        while (System.currentTimeMillis() - startTime < timeout) {
-            try {
-                Map<String, Object> response = edcWebClient.get()
-                        .uri(CONTRACT_NEGOTIATIONS_PATH + "/{id}", negotiationId)
-                        .retrieve()
-                        .bodyToMono(Map.class)
-                        .block(Duration.ofSeconds(10));
-
-                if (response == null) {
-                    log.warn("EDC returned null response for negotiation {}", negotiationId);
-                    Thread.sleep(edcProperties.getPollingIntervalMillis());
-                    continue;
-                }
-
-                String state = (String) response.get("state");
-                String agreementId = (String) response.get("contractAgreementId");
-
-                log.debug("Negotiation {} state: {}", negotiationId, state);
-
-                // Terminal states
-                if ("FINALIZED".equals(state) || "AGREED".equals(state)) {
-                    return ContractNegotiationResult.success(negotiationId, agreementId, state);
-                } else if ("TERMINATED".equals(state)) {
-                    return ContractNegotiationResult.failure(negotiationId, state,
-                            "Negotiation was terminated");
-                }
-
-                // Continue polling
-                Thread.sleep(edcProperties.getPollingIntervalMillis());
-
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return ContractNegotiationResult.failure(negotiationId, "INTERRUPTED",
-                        "Polling was interrupted");
-            } catch (Exception e) {
-                log.warn("Error polling negotiation status: {}", e.getMessage());
-                // Continue polling despite error
-            }
-        }
-
-        return ContractNegotiationResult.failure(negotiationId, "TIMEOUT",
-                "Negotiation polling timed out");
     }
 
     /**
