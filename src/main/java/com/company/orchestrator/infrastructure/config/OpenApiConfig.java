@@ -1,0 +1,33 @@
+package com.company.orchestrator.infrastructure.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+/**
+ * OpenAPI/Swagger configuration for Transfer Orchestrator API
+ * No authentication required - open API for EDC callbacks and transfer management
+ */
+@Configuration
+public class OpenApiConfig {
+
+    @Value("${springdoc.server.url}")
+    private String serverUrl;
+
+    @Value("${springdoc.server.description}")
+    private String serverDescription;
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        Server server = new Server()
+                .url(serverUrl)
+                .description(serverDescription);
+
+        return new OpenAPI()
+                .servers(List.of(server));
+    }
+}

@@ -34,7 +34,6 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
     private final PolicyService policyService;
     private final EdcConnectorClient edcClient;
     private final AuditService auditService;
-    private final com.company.orchestrator.infrastructure.persistence.repository.TransferRequestRepository transferRepository;
 
     private static final String SYSTEM_ACTOR = "SYSTEM";
 
@@ -166,8 +165,7 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
                 log.warn("Cannot cancel transfer in status: transferId={}, status={}", transferId, currentStatus);
                 throw new IllegalStateException("Transfer cannot be cancelled in current state: " + currentStatus);
             }
-            TransferRequestEntity transferEntity = transferRepository.findById(transferId)
-                    .orElseThrow(() -> new IllegalArgumentException("Transfer not found: " + transferId));
+            TransferRequestEntity transferEntity = transferStateService.getTransferById(transferId);
 
             // If transfer is in EDC phase (negotiation or transfer in progress), terminate EDC process
             if (currentStatus == TransferStatus.CONTRACT_NEGOTIATION ||
@@ -265,9 +263,9 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
         return ContractOffer.builder()
                 .providerId(request.getProviderId())
                 .assetId(request.getAssetId())
-                .providerUrl("http://provider-edc-controlplane:8282/api/v1/dsp")
+                .providerUrl("http://provider-edc:8282/api/v1/dsp")
                 .offerId("offer-" + transfer.getId())
-                .consumerCallbackUrl("http://orchestrator:8080/api/v1/transfers/callback")
+                .consumerCallbackUrl("http://transfer-orchestrator:8080/api/v1/transfers/callback")
                 .build();
     }
 }

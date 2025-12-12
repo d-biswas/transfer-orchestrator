@@ -6,6 +6,8 @@ import com.company.orchestrator.policy.service.PolicyService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -14,18 +16,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class PolicyServiceImpl implements PolicyService {
 
+    private final ObjectMapper objectMapper;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final List<Policy> policies = new ArrayList<>();
 
     @PostConstruct
     public void loadPolicies() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
         InputStream is = getClass().getResourceAsStream("/policies.json");
         if (is == null) {
             throw new RuntimeException("policies.json not found in resources!");
         }
-        JsonNode root = mapper.readTree(is);
+        JsonNode root = objectMapper.readTree(is);
         for (JsonNode node : root.get("policies")) {
             String type = node.get("type").asText();
             switch (type) {
@@ -37,7 +41,7 @@ public class PolicyServiceImpl implements PolicyService {
 
                 case "RateLimitPolicy":
                     int maxRequests = node.get("maxRequestsPerHour").asInt();
-                    policies.add(new RateLimitPolicy(maxRequests));
+                    policies.add(new RateLimitPolicy(maxRequests, redisTemplate));
                     break;
 
                 case "GeographicPolicy":

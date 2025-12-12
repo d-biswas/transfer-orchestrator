@@ -1,5 +1,6 @@
 package com.company.orchestrator.infrastructure.config;
 
+import com.company.orchestrator.infrastructure.events.model.BaseTransferEvent;
 import com.company.orchestrator.infrastructure.props.KafkaProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -87,11 +88,7 @@ public class KafkaConfig {
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, props.getConsumer().getGroupId());
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        configProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
-        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, TRUSTED_PACKAGES);
-        configProps.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-
         JsonDeserializer<Object> jsonDeserializer = new JsonDeserializer<>(objectMapper);
         jsonDeserializer.addTrustedPackages(TRUSTED_PACKAGES);
         jsonDeserializer.setUseTypeHeaders(false);

@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class TransferEventPublisher {
 
-    private final KafkaTemplate<String, BaseTransferEvent> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final KafkaProperties kafkaProperties;
 
     private static final String SYSTEM_ACTOR = "SYSTEM";

@@ -7,6 +7,7 @@ import com.company.orchestrator.infrastructure.edc.model.TransferProcessResult;
 import com.company.orchestrator.infrastructure.edc.model.TransferRequest;
 import com.company.orchestrator.infrastructure.events.model.TransferFailedErrorCode;
 import com.company.orchestrator.infrastructure.events.publisher.TransferEventPublisher;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ import java.util.Optional;
  * These endpoints are called by the provider EDC connector during the transfer lifecycle
  */
 @Log4j2
+@Hidden
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(ApiConstants.API_VERSION + "/transfers")
@@ -469,9 +471,9 @@ public class EdcCallbackController {
     private TransferRequest buildTransferRequest(Long transferId) {
         return TransferRequest.builder()
                 .assetId("asset-" + transferId) // TODO: Get actual asset ID from transfer entity
-                .providerUrl("http://provider-edc-controlplane:8282/api/v1/dsp")
+                .providerUrl("http://provider-edc:8185/api/public")  // Data plane public API endpoint
                 .destinationType("HttpProxy")
-                .destinationUrl("http://orchestrator:8080/api/v1/transfers/data/receive?transferId=" + transferId)
+                .destinationUrl("http://transfer-orchestrator:8080/api/v1/transfers/data/receive?transferId=" + transferId)
                 .protocol("dataspace-protocol-http")
                 .managedTransfer(true)
                 .build();

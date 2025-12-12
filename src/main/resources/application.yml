@@ -1,7 +1,20 @@
 server:
   port: 8080
 
+springdoc:
+  swagger-ui:
+    enabled: "${SWAGGER_UI_ENABLED:true}"
+    path: /api-docs
+  api-docs:
+    path: /v3/api-docs
+    enabled: "${API_DOCS_ENABLED:true}"
+  server:
+    url: "${OPENAPI_SERVER_URL:http://localhost:8080}"
+    description: "${OPENAPI_SERVER_NAME:Local Dev}"
+
 spring:
+  main:
+    allow-bean-definition-overriding: true
   datasource:
     url: "${ORCHESTRATOR_DB_URL:jdbc:postgresql://postgres:5432/orchestrator}"
     username: "${ORCHESTRATOR_DB_USER:orchestrator}"
@@ -39,6 +52,14 @@ spring:
           default_batch_fetch_size: "${HIBERNATE_JDBC_DEFAULT_BATCH_FETCH_SIZE:30}"     # Lazy fetch in groups
           order_inserts: true
           order_updates: true
+
+  cache:
+    type: redis
+  data:
+    redis:
+      host: "${REDIS_HOST:redis}"
+      port: "${REDIS_PORT:6379}"
+      cluster-mode-enabled: "${REDIS_CLUSTER_MODE_ENABLED:false}"
 
   kafka:
     admin:
