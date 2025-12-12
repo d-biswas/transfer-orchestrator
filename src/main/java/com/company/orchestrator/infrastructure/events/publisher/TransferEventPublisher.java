@@ -1,9 +1,6 @@
 package com.company.orchestrator.infrastructure.events.publisher;
 
-import com.company.orchestrator.infrastructure.events.model.BaseTransferEvent;
-import com.company.orchestrator.infrastructure.events.model.TransferCompletedEvent;
-import com.company.orchestrator.infrastructure.events.model.TransferFailedEvent;
-import com.company.orchestrator.infrastructure.events.model.TransferInProgressEvent;
+import com.company.orchestrator.infrastructure.events.model.*;
 import com.company.orchestrator.infrastructure.props.KafkaProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -61,11 +58,11 @@ public class TransferEventPublisher {
     /**
      * Publish transfer failed event
      */
-    public void publishTransferFailed(Long transferId, String errorMessage, String errorCode) {
+    public void publishTransferFailed(Long transferId, String errorMessage, TransferFailedErrorCode errorCode) {
         TransferFailedEvent event = TransferFailedEvent.builder()
                 .transferId(transferId)
                 .errorMessage(errorMessage)
-                .errorCode(errorCode)
+                .errorCode(errorCode.getCode())
                 .timestamp(Instant.now())
                 .actor(SYSTEM_ACTOR)
                 .build();
