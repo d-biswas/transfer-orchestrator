@@ -32,7 +32,6 @@ public class KafkaConfig {
 
     private final KafkaProperties props;
 
-    /** Trusted packages for Kafka JSON deserialization */
     private static final String TRUSTED_PACKAGES = "com.company.orchestrator";
 
     @Bean

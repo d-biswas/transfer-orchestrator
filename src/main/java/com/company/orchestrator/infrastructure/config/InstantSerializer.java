@@ -10,12 +10,12 @@ import java.time.format.DateTimeFormatter;
 
 public class InstantSerializer extends JsonSerializer<Instant> {
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_INSTANT;
 
     @Override
     public void serialize(Instant value, JsonGenerator generator, SerializerProvider provider) throws IOException {
         if (value != null) {
-            generator.writeString(formatter.format(value));
+            generator.writeString(FORMATTER.format(value));
         } else {
             generator.writeNull();
         }
