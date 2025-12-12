@@ -8,6 +8,7 @@ import com.company.orchestrator.infrastructure.persistence.entity.TransferStateH
 import com.company.orchestrator.infrastructure.persistence.repository.TransferRequestRepository;
 import com.company.orchestrator.infrastructure.persistence.repository.TransferStateHistoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +20,7 @@ import java.util.List;
  * Implementation of TransferStateService
  * Manages transfer lifecycle state transitions with full audit trail
  */
-@Slf4j
+@Log4j2
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor

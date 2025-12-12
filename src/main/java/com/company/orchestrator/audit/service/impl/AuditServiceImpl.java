@@ -12,7 +12,7 @@ import com.company.orchestrator.infrastructure.persistence.entity.TransferReques
 import com.company.orchestrator.infrastructure.persistence.repository.AuditLogRepository;
 import com.company.orchestrator.policy.model.PolicyEvaluationResult;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +26,9 @@ import java.util.stream.Collectors;
  * Implementation of AuditService using AuditLogRepository
  * Provides immutable audit trail and compliance reporting
  */
-@Slf4j
+@Log4j2
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class AuditServiceImpl implements AuditService {
 
@@ -144,7 +145,6 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<AuditEvent> getAuditTrail(String transferId) {
         log.debug("Fetching audit trail for transfer: {}", transferId);
 
@@ -157,7 +157,6 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ComplianceReport generateComplianceReport(DateRange range) {
         log.info("Generating compliance report from {} to {}", range.getFrom(), range.getTo());
 

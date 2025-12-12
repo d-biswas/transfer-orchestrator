@@ -15,7 +15,7 @@ import com.company.orchestrator.infrastructure.persistence.entity.TransferReques
 import com.company.orchestrator.policy.model.PolicyEvaluationResult;
 import com.company.orchestrator.policy.service.PolicyService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +25,7 @@ import java.util.List;
  * Orchestrator facade for managing end-to-end transfer lifecycle
  * Coordinates policy evaluation, EDC contract negotiation, transfer execution, and event publishing
  */
-@Slf4j
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class TransferOrchestratorImpl implements TransferOrchestrator {
