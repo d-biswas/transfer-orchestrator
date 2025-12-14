@@ -1,7 +1,7 @@
 package com.company.orchestrator.policy.model;
 
-import com.company.orchestrator.api.dto.TransferRequestDto;
+import com.company.orchestrator.api.request.TransferInitiateDto;
 
 public interface Policy {
-    PolicyEvaluationResult evaluate(TransferRequestDto request);
+    PolicyEvaluationResult evaluate(TransferInitiateDto request);
 }

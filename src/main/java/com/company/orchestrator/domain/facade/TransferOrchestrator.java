@@ -1,7 +1,7 @@
 package com.company.orchestrator.domain.facade;
 
-import com.company.orchestrator.api.dto.TransferRequestDto;
-import com.company.orchestrator.api.dto.TransferResultDto;
+import com.company.orchestrator.api.request.TransferInitiateDto;
+import com.company.orchestrator.api.response.TransferResponseDto;
 import com.company.orchestrator.audit.model.AuditEvent;
 import com.company.orchestrator.domain.model.TransferStatus;
 
@@ -13,7 +13,7 @@ public interface TransferOrchestrator {
      * Initiates a data transfer with policy evaluation
      * @return TransferRequest ID and initial status
      */
-    TransferResultDto initiateTransfer(TransferRequestDto
+    TransferResponseDto initiateTransfer(TransferInitiateDto
                                                    request);
     /**
      * Gets current status of a transfer

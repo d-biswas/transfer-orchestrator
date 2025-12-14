@@ -1,6 +1,6 @@
 package com.company.orchestrator.policy.model;
 
-import com.company.orchestrator.api.dto.TransferRequestDto;
+import com.company.orchestrator.api.request.TransferInitiateDto;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.time.Instant;
@@ -28,7 +28,7 @@ public class RateLimitPolicy implements Policy {
     }
 
     @Override
-    public PolicyEvaluationResult evaluate(TransferRequestDto request) {
+    public PolicyEvaluationResult evaluate(TransferInitiateDto request) {
         String consumerId = request.getConsumerId();
         // Use current time for rate limit evaluation
         Instant now = Instant.now();

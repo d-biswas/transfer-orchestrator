@@ -1,6 +1,6 @@
 package com.company.orchestrator.policy.model;
 
-import com.company.orchestrator.api.dto.TransferRequestDto;
+import com.company.orchestrator.api.request.TransferInitiateDto;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
@@ -14,7 +14,7 @@ public class TimeBasedPolicy implements Policy {
     private final LocalTime endTime;
 
     @Override
-    public PolicyEvaluationResult evaluate(TransferRequestDto request) {
+    public PolicyEvaluationResult evaluate(TransferInitiateDto request) {
         // Use current time for policy evaluation
         LocalTime requestedTime = Instant.now()
                 .atZone(ZoneId.of("UTC"))

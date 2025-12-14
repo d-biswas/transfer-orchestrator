@@ -1,6 +1,6 @@
 package com.company.orchestrator.policy.service.impl;
 
-import com.company.orchestrator.api.dto.TransferRequestDto;
+import com.company.orchestrator.api.request.TransferInitiateDto;
 import com.company.orchestrator.policy.model.*;
 import com.company.orchestrator.policy.service.PolicyService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -69,7 +69,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public PolicyEvaluationResult evaluatePolicies(TransferRequestDto request) {
+    public PolicyEvaluationResult evaluatePolicies(TransferInitiateDto request) {
         AndPolicy all = new AndPolicy(policies);
         return all.evaluate(request);
     }

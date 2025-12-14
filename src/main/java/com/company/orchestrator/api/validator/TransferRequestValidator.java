@@ -1,6 +1,6 @@
 package com.company.orchestrator.api.validator;
 
-import com.company.orchestrator.api.dto.TransferRequestDto;
+import com.company.orchestrator.api.request.TransferInitiateDto;
 import jakarta.annotation.Nonnull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
@@ -33,12 +33,12 @@ public class TransferRequestValidator implements Validator {
 
     @Override
     public boolean supports(@Nonnull Class<?> clazz) {
-        return TransferRequestDto.class.equals(clazz);
+        return TransferInitiateDto.class.equals(clazz);
     }
 
     @Override
     public void validate(@Nonnull Object target, @Nonnull Errors errors) {
-        TransferRequestDto request = (TransferRequestDto) target;
+        TransferInitiateDto request = (TransferInitiateDto) target;
 
         log.debug("Validating transfer request: assetId={}, providerId={}, consumerId={}",
                 request.getAssetId(), request.getProviderId(), request.getConsumerId());
@@ -66,7 +66,7 @@ public class TransferRequestValidator implements Validator {
     /**
      * Validates all required fields are present and not blank
      */
-    private void validateRequiredFields(TransferRequestDto request, Errors errors) {
+    private void validateRequiredFields(TransferInitiateDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "assetId", "field.required",
                 "Asset ID is required");
 
@@ -119,7 +119,7 @@ public class TransferRequestValidator implements Validator {
     /**
      * Validates field lengths don't exceed database constraints
      */
-    private void validateFieldLengths(TransferRequestDto request, Errors errors) {
+    private void validateFieldLengths(TransferInitiateDto request, Errors errors) {
         if (request.getAssetId() != null && request.getAssetId().length() > MAX_ASSET_ID_LENGTH) {
             errors.rejectValue("assetId", "field.too.long",
                     String.format("Asset ID cannot exceed %d characters", MAX_ASSET_ID_LENGTH));
@@ -139,7 +139,7 @@ public class TransferRequestValidator implements Validator {
     /**
      * Validates business rules and constraints
      */
-    private void validateBusinessRules(TransferRequestDto request, Errors errors) {
+    private void validateBusinessRules(TransferInitiateDto request, Errors errors) {
         // Example: Provider and consumer cannot be the same
         if (request.getProviderId() != null && request.getConsumerId() != null) {
             if (request.getProviderId().equals(request.getConsumerId())) {
@@ -160,7 +160,7 @@ public class TransferRequestValidator implements Validator {
     /**
      * Validates optional fields when provided
      */
-    private void validateOptionalFields(TransferRequestDto request, Errors errors) {
+    private void validateOptionalFields(TransferInitiateDto request, Errors errors) {
         // Validate consumer region if provided
         if (request.getConsumerRegion() != null && !request.getConsumerRegion().isBlank()) {
             String region = request.getConsumerRegion().toUpperCase();

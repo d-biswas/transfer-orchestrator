@@ -1,6 +1,6 @@
 package com.company.orchestrator.policy.model;
 
-import com.company.orchestrator.api.dto.TransferRequestDto;
+import com.company.orchestrator.api.request.TransferInitiateDto;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -9,7 +9,7 @@ public class NotPolicy implements Policy {
     private final Policy policy;
 
     @Override
-    public PolicyEvaluationResult evaluate(TransferRequestDto request) {
+    public PolicyEvaluationResult evaluate(TransferInitiateDto request) {
         PolicyEvaluationResult result = policy.evaluate(request);
         boolean allowed = !result.allowed();
         return new PolicyEvaluationResult(this, allowed,

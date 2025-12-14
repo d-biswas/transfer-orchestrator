@@ -1,8 +1,8 @@
 package com.company.orchestrator.api.controller;
 
 import com.company.orchestrator.api.constants.ApiConstants;
-import com.company.orchestrator.api.dto.TransferRequestDto;
-import com.company.orchestrator.api.dto.TransferResultDto;
+import com.company.orchestrator.api.request.TransferInitiateDto;
+import com.company.orchestrator.api.response.TransferResponseDto;
 import com.company.orchestrator.api.validator.TransferRequestValidator;
 import com.company.orchestrator.domain.facade.TransferOrchestrator;
 import com.company.orchestrator.domain.model.TransferStatus;
@@ -30,8 +30,8 @@ public class TransferOrchestratorController {
     }
 
     @PostMapping(ApiConstants.Path.TRANSFERS)
-    public ResponseEntity<TransferResultDto> initiateTransfer(@Valid @RequestBody TransferRequestDto requestDto) {
-        TransferResultDto response = transferOrchestrator.initiateTransfer(requestDto);
+    public ResponseEntity<TransferResponseDto> initiateTransfer(@Valid @RequestBody TransferInitiateDto requestDto) {
+        TransferResponseDto response = transferOrchestrator.initiateTransfer(requestDto);
         return ResponseEntity.ok(response);
     }
 

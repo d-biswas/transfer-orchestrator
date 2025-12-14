@@ -1,7 +1,7 @@
 package com.company.orchestrator.domain.facade.impl;
 
-import com.company.orchestrator.api.dto.TransferRequestDto;
-import com.company.orchestrator.api.dto.TransferResultDto;
+import com.company.orchestrator.api.request.TransferInitiateDto;
+import com.company.orchestrator.api.response.TransferResponseDto;
 import com.company.orchestrator.audit.model.AuditEvent;
 import com.company.orchestrator.audit.service.AuditService;
 import com.company.orchestrator.domain.facade.TransferOrchestrator;
@@ -51,11 +51,11 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
      */
     @Override
     @Transactional
-    public TransferResultDto initiateTransfer(TransferRequestDto request) {
+    public TransferResponseDto initiateTransfer(TransferInitiateDto request) {
         log.info("Initiating transfer: consumerId={}, providerId={}, assetId={}, dataType={}",
                 request.getConsumerId(), request.getProviderId(), request.getAssetId(), request.getDataType());
 
-        TransferResultDto result = new TransferResultDto();
+        TransferResponseDto result = new TransferResponseDto();
         try {
             // Create transfer request (REQUESTED)
             TransferRequestEntity transfer = transferStateService.initiateTransfer(
@@ -251,7 +251,7 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
      * providerUrl: Provider's EDC DSP endpoint for contract negotiation
      * consumerCallbackUrl: Where provider EDC notifies about negotiation status
      */
-    private ContractOffer buildContractOffer(TransferRequestDto request, TransferRequestEntity transfer) {
+    private ContractOffer buildContractOffer(TransferInitiateDto request, TransferRequestEntity transfer) {
         return ContractOffer.builder()
                 .providerId(request.getProviderId())
                 .assetId(request.getAssetId())

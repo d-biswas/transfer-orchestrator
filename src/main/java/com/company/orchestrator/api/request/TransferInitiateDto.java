@@ -1,4 +1,4 @@
-package com.company.orchestrator.api.dto;
+package com.company.orchestrator.api.request;
 
 import com.company.orchestrator.domain.model.DataType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,7 +14,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Schema(description = "Request to initiate a data transfer")
-public class TransferRequestDto {
+public class TransferInitiateDto {
 
     @Schema(description = "Asset ID to transfer", example = "asset-001", requiredMode = Schema.RequiredMode.REQUIRED)
     private String assetId;
