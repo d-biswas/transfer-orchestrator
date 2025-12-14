@@ -36,9 +36,9 @@ public interface AuditService {
     void logTransferCompletion(String transferId, TransferResult result);
 
     /**
-     * Get complete audit trail for a transfer
+     * Get complete audit logs for a transfer
      */
-    List<AuditEvent> getAuditTrail(String transferId);
+    List<AuditEvent> getAuditLogsByTransferId(String transferId);
 
     /**
      * Generate compliance report for a date range

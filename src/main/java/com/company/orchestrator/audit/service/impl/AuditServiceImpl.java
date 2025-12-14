@@ -145,8 +145,8 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    public List<AuditEvent> getAuditTrail(String transferId) {
-        log.debug("Fetching audit trail for transfer: {}", transferId);
+    public List<AuditEvent> getAuditLogsByTransferId(String transferId) {
+        log.debug("Fetching audit logs for the transfer: {}", transferId);
 
         List<AuditLogEntity> entities = auditLogRepository
                 .findByTransferIdOrderByCreatedAtDesc(parseTransferId(transferId));

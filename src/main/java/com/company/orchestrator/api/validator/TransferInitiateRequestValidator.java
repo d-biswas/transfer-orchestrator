@@ -8,8 +8,6 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Set;
 
 /**
@@ -18,7 +16,14 @@ import java.util.Set;
  */
 @Log4j2
 @Component
-public class TransferRequestValidator implements Validator {
+public class TransferInitiateRequestValidator implements Validator {
+
+    private static final String FIELD_ASSET_ID = "assetId";
+    private static final String FIELD_PROVIDER_ID = "providerId";
+    private static final String FIELD_CONSUMER_ID = "consumerId";
+    private static final String FIELD_PROVIDER_URL = "providerUrl";
+    private static final String FIELD_DATA_TYPE = "dataType";
+    private static final String FIELD_CONSUMER_REGION = "consumerRegion";
 
     private static final Set<String> VALID_REGIONS = Set.of(
             "EU", "US", "ASIA", "APAC", "EMEA", "LATAM", "MEA"
@@ -39,25 +44,12 @@ public class TransferRequestValidator implements Validator {
     @Override
     public void validate(@Nonnull Object target, @Nonnull Errors errors) {
         TransferInitiateDto request = (TransferInitiateDto) target;
-
         log.debug("Validating transfer request: assetId={}, providerId={}, consumerId={}",
                 request.getAssetId(), request.getProviderId(), request.getConsumerId());
 
-        // 1. Required field validations
         validateRequiredFields(request, errors);
-
-        // 2. Format validations
-        if (!errors.hasFieldErrors("providerUrl")) {
-            validateProviderUrl(request.getProviderUrl(), errors);
-        }
-
-        // 3. Length validations
         validateFieldLengths(request, errors);
-
-        // 4. Business rule validations
         validateBusinessRules(request, errors);
-
-        // 5. Optional field validations
         validateOptionalFields(request, errors);
 
         log.debug("Validation completed. Errors: {}", errors.getErrorCount());
@@ -67,52 +59,20 @@ public class TransferRequestValidator implements Validator {
      * Validates all required fields are present and not blank
      */
     private void validateRequiredFields(TransferInitiateDto request, Errors errors) {
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "assetId", "field.required",
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, FIELD_ASSET_ID, "field.required",
                 "Asset ID is required");
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "providerId", "field.required",
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, FIELD_PROVIDER_ID, "field.required",
                 "Provider ID is required");
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "providerUrl", "field.required",
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, FIELD_PROVIDER_URL, "field.required",
                 "Provider URL is required");
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "consumerId", "field.required",
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, FIELD_CONSUMER_ID, "field.required",
                 "Consumer ID is required");
 
         if (request.getDataType() == null) {
-            errors.rejectValue("dataType", "field.required", "Data type is required");
-        }
-    }
-
-    /**
-     * Validates provider URL is a valid HTTP/HTTPS URL and follows EDC DSP endpoint pattern
-     */
-    private void validateProviderUrl(String providerUrl, Errors errors) {
-        if (providerUrl == null || providerUrl.isBlank()) {
-            return; // Already validated in required fields
-        }
-
-        // Check if it's a valid URL
-        try {
-            URL url = new URL(providerUrl);
-
-            // Validate protocol
-            String protocol = url.getProtocol();
-            if (!protocol.equals("http") && !protocol.equals("https")) {
-                errors.rejectValue("providerUrl", "url.invalid.protocol",
-                        "Provider URL must use HTTP or HTTPS protocol");
-            }
-
-            // Validate it looks like a DSP endpoint (should contain /dsp or /api/v1/dsp)
-            if (!providerUrl.contains("/dsp")) {
-                log.warn("Provider URL does not contain '/dsp' path: {}", providerUrl);
-                errors.rejectValue("providerUrl", "url.invalid.format",
-                        "Provider URL should be a DSP endpoint (e.g., http://provider-edc:7172/api/v1/dsp)");
-            }
-
-        } catch (MalformedURLException e) {
-            errors.rejectValue("providerUrl", "url.malformed",
-                    "Provider URL is not a valid URL: " + e.getMessage());
+            errors.rejectValue(FIELD_DATA_TYPE, "field.required", "Data type is required");
         }
     }
 
@@ -121,17 +81,17 @@ public class TransferRequestValidator implements Validator {
      */
     private void validateFieldLengths(TransferInitiateDto request, Errors errors) {
         if (request.getAssetId() != null && request.getAssetId().length() > MAX_ASSET_ID_LENGTH) {
-            errors.rejectValue("assetId", "field.too.long",
+            errors.rejectValue(FIELD_ASSET_ID, "field.too.long",
                     String.format("Asset ID cannot exceed %d characters", MAX_ASSET_ID_LENGTH));
         }
 
         if (request.getProviderId() != null && request.getProviderId().length() > MAX_PARTICIPANT_ID_LENGTH) {
-            errors.rejectValue("providerId", "field.too.long",
+            errors.rejectValue(FIELD_PROVIDER_ID, "field.too.long",
                     String.format("Provider ID cannot exceed %d characters", MAX_PARTICIPANT_ID_LENGTH));
         }
 
         if (request.getConsumerId() != null && request.getConsumerId().length() > MAX_PARTICIPANT_ID_LENGTH) {
-            errors.rejectValue("consumerId", "field.too.long",
+            errors.rejectValue(FIELD_CONSUMER_ID, "field.too.long",
                     String.format("Consumer ID cannot exceed %d characters", MAX_PARTICIPANT_ID_LENGTH));
         }
     }
@@ -151,7 +111,7 @@ public class TransferRequestValidator implements Validator {
         // Example: Asset ID should not contain special characters that could cause issues
         if (request.getAssetId() != null) {
             if (request.getAssetId().contains("..") || request.getAssetId().contains("//")) {
-                errors.rejectValue("assetId", "field.invalid.format",
+                errors.rejectValue(FIELD_ASSET_ID, "field.invalid.format",
                         "Asset ID contains invalid character sequences");
             }
         }
@@ -165,7 +125,7 @@ public class TransferRequestValidator implements Validator {
         if (request.getConsumerRegion() != null && !request.getConsumerRegion().isBlank()) {
             String region = request.getConsumerRegion().toUpperCase();
             if (!VALID_REGIONS.contains(region)) {
-                errors.rejectValue("consumerRegion", "field.invalid.value",
+                errors.rejectValue(FIELD_CONSUMER_REGION, "field.invalid.value",
                         String.format("Invalid region. Valid regions: %s", VALID_REGIONS));
             }
         }

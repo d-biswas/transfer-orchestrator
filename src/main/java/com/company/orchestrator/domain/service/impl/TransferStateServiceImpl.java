@@ -10,6 +10,8 @@ import com.company.orchestrator.infrastructure.persistence.repository.TransferSt
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -306,5 +308,10 @@ public class TransferStateServiceImpl implements TransferStateService {
         transferRequestRepository.save(transfer);
 
         log.debug("EDC contract agreement ID updated: transferId={}", transferId);
+    }
+
+    @Override
+    public Page<TransferRequestEntity> findTransfers(Pageable pageable) {
+        return transferRequestRepository.findAll(pageable);
     }
 }

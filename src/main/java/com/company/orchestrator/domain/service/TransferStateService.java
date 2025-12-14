@@ -4,6 +4,8 @@ import com.company.orchestrator.domain.model.DataType;
 import com.company.orchestrator.domain.model.TransferStatus;
 import com.company.orchestrator.infrastructure.persistence.entity.TransferRequestEntity;
 import com.company.orchestrator.infrastructure.persistence.entity.TransferStateHistoryEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -26,4 +28,6 @@ public interface TransferStateService {
     void updateEdcTransferProcessId(Long transferId, String edcTransferProcessId);
 
     void updateEdcContractAgreementId(Long transferId, String edcContractAgreementId);
+
+    Page<TransferRequestEntity> findTransfers(Pageable pageable);
 }

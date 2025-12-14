@@ -1,5 +1,6 @@
 package com.company.orchestrator.api.request;
 
+import com.company.orchestrator.api.validator.TransferInitiateRequestValidator;
 import com.company.orchestrator.domain.model.DataType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -8,7 +9,7 @@ import lombok.Setter;
 /**
  * Request DTO for initiating a data transfer
  * <p>
- * Validated by {@link com.company.orchestrator.api.validator.TransferRequestValidator}
+ * Validated by {@link TransferInitiateRequestValidator}
  * </p>
  */
 @Getter

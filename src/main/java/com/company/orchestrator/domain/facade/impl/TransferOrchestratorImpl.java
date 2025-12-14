@@ -1,6 +1,7 @@
 package com.company.orchestrator.domain.facade.impl;
 
 import com.company.orchestrator.api.request.TransferInitiateDto;
+import com.company.orchestrator.api.response.TransferDto;
 import com.company.orchestrator.api.response.TransferResponseDto;
 import com.company.orchestrator.audit.model.AuditEvent;
 import com.company.orchestrator.audit.service.AuditService;
@@ -16,6 +17,8 @@ import com.company.orchestrator.policy.model.PolicyEvaluationResult;
 import com.company.orchestrator.policy.service.PolicyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -206,9 +209,18 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
      * Retrieves audit log for a transfer
      */
     @Override
-    public List<AuditEvent> getTransferAuditLog(Long transferId) {
+    public List<AuditEvent> getTransferAuditLogs(Long transferId) {
         log.debug("Retrieving audit log: transferId={}", transferId);
-        return auditService.getAuditTrail(transferId.toString());
+        return auditService.getAuditLogsByTransferId(transferId.toString());
+    }
+
+    /**
+     * Retrieves page of transfers
+     */
+    @Override
+    public Page<TransferDto> findTransfers(Pageable pageable) {
+        return transferStateService.findTransfers(pageable)
+                .map(this::toTransferDto);
     }
 
     /**
@@ -258,6 +270,24 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
                 .providerUrl("http://provider-edc:8282/protocol")
                 .offerId("offer-" + transfer.getId())
                 .consumerCallbackUrl("http://transfer-orchestrator:8080/api/v1/transfers/callback")
+                .build();
+    }
+
+    /**
+     * Convert TransferRequestEntity to TransferDto
+     */
+    private TransferDto toTransferDto(TransferRequestEntity entity) {
+        return TransferDto.builder()
+                .id(entity.getId())
+                .consumerId(entity.getConsumerId())
+                .providerId(entity.getProviderId())
+                .assetId(entity.getAssetId())
+                .dataType(entity.getDataType())
+                .status(entity.getStatus())
+                .edcNegotiationId(entity.getEdcNegotiationId())
+                .edcTransferProcessId(entity.getEdcTransferProcessId())
+                .edcContractAgreementId(entity.getEdcContractAgreementId())
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
 }
