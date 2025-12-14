@@ -23,22 +23,22 @@ public interface AuditService {
     /**
      * Log policy evaluation result
      */
-    void logPolicyEvaluation(String transferId, PolicyEvaluationResult result);
+    void logPolicyEvaluation(Long transferId, String consumerId, PolicyEvaluationResult result);
 
     /**
      * Log transfer state transition
      */
-    void logStateTransition(String transferId, TransferStatus from, TransferStatus to);
+    void logStateTransition(Long transferId, String consumerId, TransferStatus from, TransferStatus to);
 
     /**
      * Log transfer completion
      */
-    void logTransferCompletion(String transferId, TransferResult result);
+    void logTransferCompletion(Long transferId, String consumerId, TransferResult result);
 
     /**
      * Get complete audit logs for a transfer
      */
-    List<AuditEvent> getAuditLogsByTransferId(String transferId);
+    List<AuditEvent> getAuditLogsByTransferId(Long transferId);
 
     /**
      * Generate compliance report for a date range

@@ -26,9 +26,10 @@ public class TransferEventPublisher {
     /**
      * Publish contact negotiated event
      */
-    public void publishContactNegotiated(Long transferId, String agreementId, String correlationId) {
+    public void publishContactNegotiated(Long transferId, String consumerId, String agreementId, String correlationId) {
         TransferContractNegotiatedEvent event = TransferContractNegotiatedEvent.builder()
                 .transferId(transferId)
+                .consumerId(consumerId)
                 .agreementId(agreementId)
                 .correlationId(correlationId)
                 .timestamp(Instant.now())
@@ -42,9 +43,10 @@ public class TransferEventPublisher {
     /**
      * Publish transfer in progress event
      */
-    public void publishTransferInProgress(Long transferId, String edcTransferProcessId, String edcState) {
+    public void publishTransferInProgress(Long transferId, String consumerId, String edcTransferProcessId, String edcState) {
         TransferInProgressEvent event = TransferInProgressEvent.builder()
                 .transferId(transferId)
+                .consumerId(consumerId)
                 .edcTransferProcessId(edcTransferProcessId)
                 .edcState(edcState)
                 .timestamp(Instant.now())
@@ -58,9 +60,10 @@ public class TransferEventPublisher {
     /**
      * Publish transfer completed event
      */
-    public void publishTransferCompleted(Long transferId, Long bytesTransferred, String edcTransferProcessId) {
+    public void publishTransferCompleted(Long transferId, String consumerId, Long bytesTransferred, String edcTransferProcessId) {
         TransferCompletedEvent event = TransferCompletedEvent.builder()
                 .transferId(transferId)
+                .consumerId(consumerId)
                 .bytesTransferred(bytesTransferred)
                 .edcTransferProcessId(edcTransferProcessId)
                 .timestamp(Instant.now())
@@ -74,9 +77,10 @@ public class TransferEventPublisher {
     /**
      * Publish transfer failed event
      */
-    public void publishTransferFailed(Long transferId, String errorMessage, TransferFailedErrorCode errorCode) {
+    public void publishTransferFailed(Long transferId, String consumerId, String errorMessage, TransferFailedErrorCode errorCode) {
         TransferFailedEvent event = TransferFailedEvent.builder()
                 .transferId(transferId)
+                .consumerId(consumerId)
                 .errorMessage(errorMessage)
                 .errorCode(errorCode.getCode())
                 .timestamp(Instant.now())

@@ -25,6 +25,9 @@ public class AuditLogEntity extends BaseEntity {
     @Column(name = "transfer_id")
     private Long transferId;
 
+    @Column(name = "consumer_id", nullable = false)
+    private String consumerId;
+
     @Column(name = "event_type", nullable = false)
     @Convert(converter = AuditEventTypeConverter.class)
     private AuditEventType eventType;

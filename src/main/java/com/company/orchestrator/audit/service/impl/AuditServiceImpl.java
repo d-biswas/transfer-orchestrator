@@ -41,14 +41,14 @@ public class AuditServiceImpl implements AuditService {
         log.info("Logging transfer request: {}", request.getId());
 
         Map<String, Object> metadata = new HashMap<>();
-        metadata.put("consumerId", request.getConsumerId());
-        metadata.put("providerId", request.getProviderId());
         metadata.put("assetId", request.getAssetId());
+        metadata.put("providerId", request.getProviderId());
         metadata.put("dataType", request.getDataType().name());
         metadata.put("status", request.getStatus().getName());
 
         AuditLogEntity auditLog = AuditLogEntity.builder()
                 .transferId(request.getId())
+                .consumerId(request.getConsumerId())
                 .eventType(AuditEventType.TRANSFER_REQUESTED)
                 .actor(SYSTEM_ACTOR)
                 .message(String.format("Transfer request from %s to %s for asset %s",
@@ -62,7 +62,7 @@ public class AuditServiceImpl implements AuditService {
 
     @Override
     @Transactional
-    public void logPolicyEvaluation(String transferId, PolicyEvaluationResult result) {
+    public void logPolicyEvaluation(Long transferId, String consumerId, PolicyEvaluationResult result) {
         log.info("Logging policy evaluation for transfer: {}, allowed: {}", transferId, result.allowed());
 
         Map<String, Object> metadata = new HashMap<>();
@@ -77,7 +77,8 @@ public class AuditServiceImpl implements AuditService {
                 AuditEventType.POLICY_EVALUATION_FAILED;
 
         AuditLogEntity auditLog = AuditLogEntity.builder()
-                .transferId(parseTransferId(transferId))
+                .transferId(transferId)
+                .consumerId(consumerId)
                 .eventType(eventType)
                 .actor(SYSTEM_ACTOR)
                 .message(result.allowed() ?
@@ -92,7 +93,7 @@ public class AuditServiceImpl implements AuditService {
 
     @Override
     @Transactional
-    public void logStateTransition(String transferId, TransferStatus from, TransferStatus to) {
+    public void logStateTransition(Long transferId, String consumerId, TransferStatus from, TransferStatus to) {
         log.info("Logging state transition for transfer: {} from {} to {}", transferId, from, to);
 
         Map<String, Object> metadata = new HashMap<>();
@@ -100,7 +101,8 @@ public class AuditServiceImpl implements AuditService {
         metadata.put("toState", to.getName());
 
         AuditLogEntity auditLog = AuditLogEntity.builder()
-                .transferId(parseTransferId(transferId))
+                .transferId(transferId)
+                .consumerId(consumerId)
                 .eventType(AuditEventType.STATE_CHANGED)
                 .actor(SYSTEM_ACTOR)
                 .message(String.format("State changed from %s to %s", from.getName(), to.getName()))
@@ -113,7 +115,7 @@ public class AuditServiceImpl implements AuditService {
 
     @Override
     @Transactional
-    public void logTransferCompletion(String transferId, TransferResult result) {
+    public void logTransferCompletion(Long transferId, String consumerId, TransferResult result) {
         log.info("Logging transfer completion for: {}, success: {}", transferId, result.isSuccess());
 
         Map<String, Object> metadata = new HashMap<>();
@@ -131,7 +133,8 @@ public class AuditServiceImpl implements AuditService {
                 AuditEventType.TRANSFER_PROCESS_FAILED;
 
         AuditLogEntity auditLog = AuditLogEntity.builder()
-                .transferId(parseTransferId(transferId))
+                .transferId(transferId)
+                .consumerId(consumerId)
                 .eventType(eventType)
                 .actor(SYSTEM_ACTOR)
                 .message(result.isSuccess() ?
@@ -145,11 +148,11 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    public List<AuditEvent> getAuditLogsByTransferId(String transferId) {
+    public List<AuditEvent> getAuditLogsByTransferId(Long transferId) {
         log.debug("Fetching audit logs for the transfer: {}", transferId);
 
         List<AuditLogEntity> entities = auditLogRepository
-                .findByTransferIdOrderByCreatedAtDesc(parseTransferId(transferId));
+                .findByTransferIdOrderByCreatedAtDesc(transferId);
 
         return entities.stream()
                 .map(this::toAuditEvent)
@@ -218,23 +221,12 @@ public class AuditServiceImpl implements AuditService {
         return AuditEvent.builder()
                 .id(entity.getId())
                 .transferId(entity.getTransferId())
+                .consumerId(entity.getConsumerId())
                 .eventType(entity.getEventType())
                 .actor(entity.getActor())
                 .message(entity.getMessage())
                 .metadata(entity.getMetadata())
                 .createdAt(entity.getCreatedAt())
                 .build();
-    }
-
-    /**
-     * Parse string transfer ID to Long
-     */
-    private Long parseTransferId(String transferId) {
-        try {
-            return Long.parseLong(transferId);
-        } catch (NumberFormatException e) {
-            log.warn("Invalid transfer ID format: {}", transferId);
-            return null;
-        }
     }
 }

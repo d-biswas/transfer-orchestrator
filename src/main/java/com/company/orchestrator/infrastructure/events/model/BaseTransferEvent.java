@@ -25,6 +25,9 @@ public abstract class BaseTransferEvent implements Serializable {
     /** Transfer ID */
     private Long transferId;
 
+    /** Consumer ID */
+    private String consumerId;
+
     /** Event timestamp */
     private Instant timestamp;
 

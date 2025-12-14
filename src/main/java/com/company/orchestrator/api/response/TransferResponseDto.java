@@ -1,11 +1,15 @@
 package com.company.orchestrator.api.response;
 
 import com.company.orchestrator.domain.model.TransferStatus;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class TransferResponseDto {
     private Long transferId;
     private TransferStatus status;

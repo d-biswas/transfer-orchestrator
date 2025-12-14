@@ -24,6 +24,9 @@ public class AuditEvent {
     /** Associated transfer ID */
     private Long transferId;
 
+    /** Associated consumer ID */
+    private String consumerId;
+
     /** Type of audit event */
     private AuditEventType eventType;
 

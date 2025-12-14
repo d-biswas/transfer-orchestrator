@@ -90,7 +90,8 @@ public class EdcCallbackController {
             // Publish TransferCompleted event (state machine will handle it)
             if (transferId != null && !transferId.isEmpty()) {
                 Long transferIdLong = Long.parseLong(transferId);
-                eventPublisher.publishTransferCompleted(transferIdLong, (long) data.length, edcProcessId);
+                TransferRequestEntity transferRequest = transferStateService.getTransferById(transferIdLong);
+                eventPublisher.publishTransferCompleted(transferIdLong, transferRequest.getConsumerId(), (long) data.length, edcProcessId);
                 log.info("✅ Published TransferCompleted event: transferId={}", transferIdLong);
             }
 
@@ -128,7 +129,6 @@ public class EdcCallbackController {
             @RequestBody Map<String, Object> payload) {
 
         log.info("Received EDC callback: {}", payload);
-
         try {
             // Extract common EDC callback fields
             String processId = extractString(payload, "id", "processId", "transferProcessId");
@@ -201,6 +201,7 @@ public class EdcCallbackController {
         log.info("Handling state callback: transferId={}, edcState={}, processId={}",
                 transferId, edcState, processId);
 
+        TransferRequestEntity transfer = transferStateService.getTransferById(transferId);
         try {
             String state = edcState.toUpperCase();
 
@@ -211,7 +212,7 @@ public class EdcCallbackController {
                     String agreementId = extractString(payload, "agreementId", "contractAgreementId");
                     String correlationId = extractString(payload, "correlationId");
                     if (agreementId == null) agreementId = processId;
-                    eventPublisher.publishContactNegotiated(transferId, agreementId, correlationId);
+                    eventPublisher.publishContactNegotiated(transferId, transfer.getConsumerId(), agreementId, correlationId);
 
                     TransferRequest transferRequest = buildTransferRequest(transferId);
                     TransferProcessResult result = edcClient.initiateTransfer(agreementId, transferRequest);
@@ -220,7 +221,7 @@ public class EdcCallbackController {
                         transferStateService.updateEdcTransferProcessId(transferId, result.getTransferProcessId());
                         log.info("Transfer initiated: transferId={}, processId={}", transferId, result.getTransferProcessId());
                     } else {
-                        eventPublisher.publishTransferFailed(transferId, "Failed to initiate transfer",
+                        eventPublisher.publishTransferFailed(transferId, transfer.getConsumerId(), "Failed to initiate transfer",
                             TransferFailedErrorCode.TRANSFER_INITIATION_FAILED);
                     }
                 }
@@ -231,7 +232,7 @@ public class EdcCallbackController {
                     if (processId != null) {
                         transferStateService.updateEdcTransferProcessId(transferId, processId);
                     }
-                    eventPublisher.publishTransferInProgress(transferId, processId, state);
+                    eventPublisher.publishTransferInProgress(transferId, transfer.getConsumerId(), processId, state);
                 }
 
                 // TRANSFER COMPLETED
@@ -242,7 +243,7 @@ public class EdcCallbackController {
                 case "FAILED" -> {
                     log.error("Transfer failed: transferId={}, state={}", transferId, state);
                     String errorMsg = extractString(payload, "errorDetail", "error", "message");
-                    eventPublisher.publishTransferFailed(transferId,
+                    eventPublisher.publishTransferFailed(transferId, transfer.getConsumerId(),
                         errorMsg != null ? errorMsg : "Transfer " + state.toLowerCase(),
                         TransferFailedErrorCode.EDC_CALLBACK_FAILED);
                 }
@@ -251,10 +252,9 @@ public class EdcCallbackController {
                 case "TERMINATED" -> {
                     // Immediate action: the termination happens right away.
                     log.error("Transfer canceled: transferId={}, state={}", transferId, state);
-                    TransferRequestEntity transferEntity = transferStateService.getTransferById(transferId);
-                    TransferStatus currentStatus = transferEntity.getStatus();
+                    TransferStatus currentStatus = transfer.getStatus();
                     transferStateService.cancelTransfer(transferId, SYSTEM_ACTOR);
-                    auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.CANCELLED);
+                    auditService.logStateTransition(transferId, transfer.getConsumerId(), currentStatus, TransferStatus.CANCELLED);
                 }
 
                 // IGNORE intermediate states
@@ -268,7 +268,7 @@ public class EdcCallbackController {
 
         } catch (Exception ex) {
             log.error("Error handling callback: transferId={}, error={}", transferId, ex.getMessage(), ex);
-            eventPublisher.publishTransferFailed(transferId, "Callback processing error: " + ex.getMessage(),
+            eventPublisher.publishTransferFailed(transferId, transfer.getConsumerId(), "Callback processing error: " + ex.getMessage(),
                 TransferFailedErrorCode.EDC_CALLBACK_ERROR);
         }
     }

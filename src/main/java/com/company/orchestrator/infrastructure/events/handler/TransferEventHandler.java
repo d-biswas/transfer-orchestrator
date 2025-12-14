@@ -175,7 +175,7 @@ public class TransferEventHandler {
 
                 transferStateService.updateEdcContractAgreementId(transferId, event.getAgreementId());
                 transferStateService.updateState(transferId, TransferStatus.NEGOTIATED, KAFKA_EVENT_ACTOR);
-                auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.NEGOTIATED);
+                auditService.logStateTransition(transferId, event.getConsumerId(), currentStatus, TransferStatus.NEGOTIATED);
 
                 log.info("Transfer state updated to NEGOTIATED: transferId={}, agreementId={}, correlationId={}",
                         transferId, event.getAgreementId(), event.getCorrelationId());
@@ -209,7 +209,7 @@ public class TransferEventHandler {
                     currentStatus != TransferStatus.CANCELLED) {
 
                 transferStateService.updateState(transferId, TransferStatus.TRANSFER_IN_PROGRESS, KAFKA_EVENT_ACTOR);
-                auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.TRANSFER_IN_PROGRESS);
+                auditService.logStateTransition(transferId, event.getConsumerId(), currentStatus, TransferStatus.TRANSFER_IN_PROGRESS);
 
                 log.info("Transfer state updated to IN_PROGRESS: transferId={}, edcState={}, edcProcessId={}",
                         transferId, event.getEdcState(), event.getEdcTransferProcessId());
@@ -240,7 +240,7 @@ public class TransferEventHandler {
             if (currentStatus != TransferStatus.COMPLETED &&
                     currentStatus != TransferStatus.CANCELLED) {
                 transferStateService.updateState(transferId, TransferStatus.COMPLETED, KAFKA_EVENT_ACTOR);
-                auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.COMPLETED);
+                auditService.logStateTransition(transferId, event.getConsumerId(), currentStatus, TransferStatus.COMPLETED);
 
                 log.info("Transfer completed successfully: transferId={}, bytesTransferred={}, edcProcessId={}",
                         transferId, event.getBytesTransferred(), event.getEdcTransferProcessId());
@@ -269,7 +269,7 @@ public class TransferEventHandler {
             if (currentStatus != TransferStatus.FAILED &&
                     currentStatus != TransferStatus.CANCELLED) {
                 transferStateService.updateState(transferId, TransferStatus.FAILED, KAFKA_EVENT_ACTOR);
-                auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.FAILED);
+                auditService.logStateTransition(transferId, event.getConsumerId(), currentStatus, TransferStatus.FAILED);
                 log.error("Transfer failed: transferId={}, errorCode={}, errorMessage={}, previousState={}",
                         transferId, event.getErrorCode(), event.getErrorMessage(), currentStatus);
             } else {

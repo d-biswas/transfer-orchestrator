@@ -80,19 +80,19 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
             log.info("Evaluating policies for transferId={}", transferId);
 
             PolicyEvaluationResult policyResult = policyService.evaluatePolicies(request);
-            auditService.logPolicyEvaluation(transferId.toString(), policyResult);
+            auditService.logPolicyEvaluation(transferId, request.getConsumerId(), policyResult);
 
             if (!policyResult.allowed()) {
-                handlePolicyDenied(transferId, policyResult);
+                handlePolicyDenied(transferId, request.getConsumerId(), policyResult);
                 result.setStatus(TransferStatus.DENIED);
                 result.setMessage("Transfer denied: " + policyResult.violationReason());
                 return result;
             }
-            handlePolicyApproved(transferId, policyResult);
+            handlePolicyApproved(transferId, request.getConsumerId(), policyResult);
 
             // Initiate contract negotiation with EDC (ASYNC, NON-BLOCKING)
             transferStateService.updateState(transferId, TransferStatus.CONTRACT_NEGOTIATION, SYSTEM_ACTOR);
-            auditService.logStateTransition(transferId.toString(), TransferStatus.APPROVED, TransferStatus.CONTRACT_NEGOTIATION);
+            auditService.logStateTransition(transferId, request.getConsumerId(), TransferStatus.APPROVED, TransferStatus.CONTRACT_NEGOTIATION);
 
             log.info("Starting async contract negotiation: transferId={}, providerId={}", transferId, request.getProviderId());
 
@@ -103,7 +103,7 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
             ContractNegotiationResult negotiationResult = edcClient.negotiateContract(contractOffer);
 
             if (negotiationResult == null) {
-                handleTransferFailed(transferId, "Failed to initiate contract negotiation",
+                handleTransferFailed(transferId, request.getConsumerId(), "Failed to initiate contract negotiation",
                         TransferFailedErrorCode.EDC_NEGOTIATION_INITIATION_ERROR);
                 result.setStatus(TransferStatus.FAILED);
                 result.setMessage("Failed to initiate contract negotiation");
@@ -131,7 +131,7 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
         } catch (Exception ex) {
             log.error("Error during transfer initiation: {}", ex.getMessage(), ex);
             if (result.getTransferId() != null) {
-                handleTransferFailed(result.getTransferId(), ex.getMessage(),
+                handleTransferFailed(result.getTransferId(), request.getConsumerId(), ex.getMessage(),
                         TransferFailedErrorCode.ORCHESTRATION_ERROR);
             }
 
@@ -211,7 +211,7 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
     @Override
     public List<AuditEvent> getTransferAuditLogs(Long transferId) {
         log.debug("Retrieving audit log: transferId={}", transferId);
-        return auditService.getAuditLogsByTransferId(transferId.toString());
+        return auditService.getAuditLogsByTransferId(transferId);
     }
 
     /**
@@ -226,9 +226,9 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
     /**
      * Handle policy approval (synchronous, no Kafka events)
      */
-    private void handlePolicyApproved(Long transferId, PolicyEvaluationResult policyResult) {
+    private void handlePolicyApproved(Long transferId, String consumerId, PolicyEvaluationResult policyResult) {
         transferStateService.updateState(transferId, TransferStatus.APPROVED, SYSTEM_ACTOR);
-        auditService.logStateTransition(transferId.toString(), TransferStatus.POLICY_EVALUATION, TransferStatus.APPROVED);
+        auditService.logStateTransition(transferId, consumerId, TransferStatus.POLICY_EVALUATION, TransferStatus.APPROVED);
 
         log.info("Policy approved: transferId={}, policyType={}", transferId, policyResult.policy().getClass().getSimpleName());
     }
@@ -236,9 +236,9 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
     /**
      * Handle policy denial (synchronous, no Kafka events)
      */
-    private void handlePolicyDenied(Long transferId, PolicyEvaluationResult policyResult) {
+    private void handlePolicyDenied(Long transferId, String consumerId, PolicyEvaluationResult policyResult) {
         transferStateService.updateState(transferId, TransferStatus.DENIED, SYSTEM_ACTOR);
-        auditService.logStateTransition(transferId.toString(), TransferStatus.POLICY_EVALUATION, TransferStatus.DENIED);
+        auditService.logStateTransition(transferId, consumerId, TransferStatus.POLICY_EVALUATION, TransferStatus.DENIED);
 
         log.warn("Policy denied: transferId={}, policyType={}, reason={}",
                 transferId, policyResult.policy().getClass().getSimpleName(), policyResult.violationReason());
@@ -248,11 +248,11 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
      * Handle transfer failure
      * Updates state, publishes failure event, and logs audit
      */
-    private void handleTransferFailed(Long transferId, String errorMessage, TransferFailedErrorCode errorCode) {
+    private void handleTransferFailed(Long transferId, String consumerId, String errorMessage, TransferFailedErrorCode errorCode) {
         TransferRequestEntity transfer = transferStateService.getTransferById(transferId);
         TransferStatus oldStatus = transfer.getStatus();
         transferStateService.updateState(transferId, TransferStatus.FAILED, SYSTEM_ACTOR);
-        auditService.logStateTransition(transferId.toString(), oldStatus, TransferStatus.FAILED);
+        auditService.logStateTransition(transferId, consumerId, oldStatus, TransferStatus.FAILED);
 
         log.error("Transfer failed: transferId={}, errorMessage={}, errorCode={}",
                 transferId, errorMessage, errorCode.getCode());
