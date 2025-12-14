@@ -1,5 +1,6 @@
 package com.company.orchestrator.infrastructure.events.handler;
 
+import com.company.orchestrator.api.exception.NotFoundException;
 import com.company.orchestrator.audit.service.AuditService;
 import com.company.orchestrator.domain.model.TransferStatus;
 import com.company.orchestrator.domain.service.TransferStateService;
@@ -7,6 +8,7 @@ import com.company.orchestrator.infrastructure.events.model.TransferCompletedEve
 import com.company.orchestrator.infrastructure.events.model.TransferContractNegotiatedEvent;
 import com.company.orchestrator.infrastructure.events.model.TransferFailedEvent;
 import com.company.orchestrator.infrastructure.events.model.TransferInProgressEvent;
+import com.company.orchestrator.infrastructure.persistence.entity.TransferRequestEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -165,7 +167,8 @@ public class TransferEventHandler {
 
         try {
             Long transferId = event.getTransferId();
-            TransferStatus currentStatus = transferStateService.getStatus(transferId);
+            TransferRequestEntity transferRequest = transferStateService.getTransferById(transferId);
+            TransferStatus currentStatus = transferRequest.getStatus();
 
             // Only update if not already in NEGOTIATED or terminal state
             if (currentStatus != TransferStatus.NEGOTIATED &&
@@ -200,7 +203,8 @@ public class TransferEventHandler {
 
         try {
             Long transferId = event.getTransferId();
-            TransferStatus currentStatus = transferStateService.getStatus(transferId);
+            TransferRequestEntity transferRequest = transferStateService.getTransferById(transferId);
+            TransferStatus currentStatus = transferRequest.getStatus();
 
             // Only update if not already in TRANSFER_IN_PROGRESS or terminal state
             if (currentStatus != TransferStatus.TRANSFER_IN_PROGRESS &&
@@ -235,7 +239,8 @@ public class TransferEventHandler {
 
         try {
             Long transferId = event.getTransferId();
-            TransferStatus currentStatus = transferStateService.getStatus(transferId);
+            TransferRequestEntity transferRequest = transferStateService.getTransferById(transferId);
+            TransferStatus currentStatus = transferRequest.getStatus();
             // Only update if not already in COMPLETED or terminal state
             if (currentStatus != TransferStatus.COMPLETED &&
                     currentStatus != TransferStatus.CANCELLED) {
@@ -265,7 +270,8 @@ public class TransferEventHandler {
 
         try {
             Long transferId = event.getTransferId();
-            TransferStatus currentStatus = transferStateService.getStatus(transferId);
+            TransferRequestEntity transferRequest = transferStateService.getTransferById(transferId);
+            TransferStatus currentStatus = transferRequest.getStatus();
             if (currentStatus != TransferStatus.FAILED &&
                     currentStatus != TransferStatus.CANCELLED) {
                 transferStateService.updateState(transferId, TransferStatus.FAILED, KAFKA_EVENT_ACTOR);

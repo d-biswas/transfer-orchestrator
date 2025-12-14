@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TransferOrchestrator {
 
@@ -37,4 +38,8 @@ public interface TransferOrchestrator {
      * Retrieves page of transfers
      */
     Page<TransferDto> findTransfers(Pageable pageable);
+    /**
+     * Finds a transfer by its ID
+     */
+    Optional<TransferDto> findTransferById(Long transferId);
 }

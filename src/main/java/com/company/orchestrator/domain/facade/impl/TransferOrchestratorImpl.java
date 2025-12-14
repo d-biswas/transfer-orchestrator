@@ -1,5 +1,8 @@
 package com.company.orchestrator.domain.facade.impl;
 
+import com.company.orchestrator.api.error.ErrorReason;
+import com.company.orchestrator.api.exception.ApiException;
+import com.company.orchestrator.api.exception.NotFoundException;
 import com.company.orchestrator.api.request.TransferInitiateDto;
 import com.company.orchestrator.api.response.TransferDto;
 import com.company.orchestrator.api.response.TransferResponseDto;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.company.orchestrator.domain.utils.Constants.SYSTEM_ACTOR;
 
@@ -146,8 +150,10 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
      */
     @Override
     public TransferStatus getTransferStatus(Long transferId) {
+        TransferRequestEntity transfer = transferStateService.findTransferById(transferId)
+                .orElseThrow(() -> new NotFoundException("Transfer not found: " + transferId));
         log.debug("Getting transfer status: transferId={}", transferId);
-        return transferStateService.getStatus(transferId);
+        return transfer.getStatus();
     }
 
     /**
@@ -158,24 +164,24 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
     @Transactional
     public void cancelTransfer(Long transferId) {
         log.info("Cancelling transfer: transferId={}", transferId);
+        TransferRequestEntity transferRequest = transferStateService.findTransferById(transferId)
+                .orElseThrow(() -> new NotFoundException("Transfer not found: " + transferId));
 
         try {
-            TransferStatus currentStatus = transferStateService.getStatus(transferId);
-
+            TransferStatus currentStatus = transferRequest.getStatus();
             if (currentStatus == TransferStatus.COMPLETED ||
                 currentStatus == TransferStatus.FAILED ||
                 currentStatus == TransferStatus.CANCELLED) {
                 log.warn("Cannot cancel transfer in status: transferId={}, status={}", transferId, currentStatus);
                 throw new IllegalStateException("Transfer cannot be cancelled in current state: " + currentStatus);
             }
-            TransferRequestEntity transferEntity = transferStateService.getTransferById(transferId);
 
             // If transfer is in EDC phase (negotiation or transfer in progress), terminate EDC process
             if (currentStatus == TransferStatus.CONTRACT_NEGOTIATION ||
                 currentStatus == TransferStatus.NEGOTIATED ||
                 currentStatus == TransferStatus.TRANSFER_IN_PROGRESS) {
 
-                String processId = transferEntity.getEdcTransferProcessId();
+                String processId = transferRequest.getEdcTransferProcessId();
 
                 if (processId != null && !processId.isEmpty()) {
                     log.info("Terminating EDC transfer process: transferId={}, edcProcessId={}",
@@ -220,6 +226,15 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
     @Override
     public Page<TransferDto> findTransfers(Pageable pageable) {
         return transferStateService.findTransfers(pageable)
+                .map(this::toTransferDto);
+    }
+
+    /**
+     * Finds a transfer by its ID
+     */
+    @Override
+    public Optional<TransferDto> findTransferById(Long transferId) {
+        return transferStateService.findTransferById(transferId)
                 .map(this::toTransferDto);
     }
 

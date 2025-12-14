@@ -8,8 +8,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TransferStateService {
+
+    Optional<TransferRequestEntity> findTransferById(Long transferId);
 
     TransferRequestEntity getTransferById(Long transferId);
 
@@ -18,8 +21,6 @@ public interface TransferStateService {
     void updateState(Long transferId, TransferStatus newStatus, String actor);
 
     void cancelTransfer(Long transferId, String actor);
-
-    TransferStatus getStatus(Long transferId);
 
     List<TransferStateHistoryEntity> getStateHistory(Long transferId);
 

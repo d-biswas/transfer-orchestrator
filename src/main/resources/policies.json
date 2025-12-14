@@ -3,8 +3,8 @@
     {
       "type": "TimeBasedPolicy",
       "name": "BusinessHoursPolicy",
-      "startTime": "08:00",
-      "endTime": "18:00"
+      "startTime": "01:00",
+      "endTime": "23:00"
     },
     {
       "type": "RateLimitPolicy",

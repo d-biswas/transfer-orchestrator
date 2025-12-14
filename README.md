@@ -62,6 +62,79 @@ com.company.orchestrator
 
 ---
 
+## Quick Start
+
+🚀 **New to this project? Start here:**
+
+1. **[QUICKSTART.md](QUICKSTART.md)** - Get running in 5 minutes
+2. **[EDC-SETUP.md](EDC-SETUP.md)** - Complete EDC setup guide with plain Eclipse EDC
+
+---
+
+## Mock EDC Mode (Default)
+
+**🎉 No real EDC connector required!** The application uses a built-in mock EDC **by default**.
+
+The Mock EDC provides:
+- ✅ No external EDC dependency - everything runs in-memory
+- ✅ Realistic async behavior with configurable delays
+- ✅ Automatic callbacks simulating real EDC state transitions
+- ✅ Contract negotiation flow: `REQUESTED → OFFERED → AGREED → FINALIZED`
+- ✅ Transfer process flow: `INITIAL → PROVISIONING → STARTED → COMPLETED`
+- ✅ Perfect for development and testing
+
+### Using the Application (Default = Mock EDC)
+
+**Just run normally - mock is active by default:**
+```bash
+./gradlew bootRun
+```
+
+That's it! No EDC connectors needed. The mock will handle all contract negotiations and transfers.
+
+### Configuration
+
+Mock behavior can be customized in `application-mock-edc.yml` or via environment variables:
+
+```yaml
+edc:
+  mock:
+    enabled: true
+    callback-base-url: "http://localhost:8080"
+
+    # Delays (milliseconds) - adjust for faster/slower testing
+    negotiation-requested-to-offered-delay-ms: 500
+    negotiation-offered-to-agreed-delay-ms: 500
+    negotiation-agreed-to-finalized-delay-ms: 500
+
+    transfer-initial-to-provisioning-delay-ms: 300
+    transfer-provisioning-to-started-delay-ms: 500
+    transfer-started-to-completed-delay-ms: 1000
+
+    # Simulate failures (0.0 = no failures, 0.2 = 20% failure rate)
+    failure-rate: 0.0
+```
+
+### Switching to Real EDC (Optional)
+
+**Development/Testing (Mock EDC - DEFAULT):**
+```bash
+# Just run normally - mock is the default
+./gradlew bootRun
+```
+
+**Production (Real EDC):**
+```bash
+# Use the 'real-edc' profile to enable actual EDC connectors
+./gradlew bootRun --args='--spring.profiles.active=real-edc'
+
+# Or via environment variable
+export SPRING_PROFILES_ACTIVE=real-edc
+./gradlew bootRun
+```
+
+---
+
 ## Setup & Running Locally
 
 ### Prerequisites
@@ -81,33 +154,38 @@ git clone <repo-url>
 cd transfer-orchestrator
 ```
 
-1. Configure database in `application.yml`:
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/orchestrator
-    username: orchestrator
-    password: orchestrator
-```
-
-1. Start required containers (Postgres, Kafka, EDC mock) using Docker Compose:
+2. Build and start everything:
 
 ```bash
-docker-compose up
+# Build the application
+./gradlew clean bootJar
+docker build -t transfer-orchestrator:0.0.1-SNAPSHOT .
+
+# Start all services (Orchestrator, EDC connectors, Postgres, Kafka, Redis)
+docker-compose up -d
+
+# Load sample data into provider EDC
+./setup-provider-edc.sh
 ```
 
-1. Build and run the application:
+3. Verify services are running:
 
 ```bash
-./gradlew clean bootRun
+docker-compose ps
+
+# Check health endpoints
+curl http://localhost:8080/actuator/health      # Orchestrator
+curl http://localhost:8181/api/check/health     # Provider EDC
+curl http://localhost:9191/api/check/health     # Consumer EDC
 ```
 
-1. Access API documentation (Swagger/OpenAPI):
+4. Access services:
 
-```
-http://localhost:8080/swagger-ui.html
-```
+- Orchestrator API: http://localhost:8080
+- Swagger/OpenAPI: http://localhost:8080/swagger-ui.html
+- Kafka UI: http://localhost:8081
+- Provider EDC Management API: http://localhost:8181/management
+- Consumer EDC Management API: http://localhost:9191/management
 
 ---
 

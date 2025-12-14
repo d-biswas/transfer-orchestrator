@@ -1,24 +1,32 @@
 package com.company.orchestrator.api.controller;
 
 import com.company.orchestrator.api.constants.ApiConstants;
+import com.company.orchestrator.api.error.ApiError;
+import com.company.orchestrator.api.error.FieldValidationError;
+import com.company.orchestrator.api.exception.ApiException;
+import com.company.orchestrator.api.request.PageParameters;
 import com.company.orchestrator.api.request.TransferInitiateDto;
 import com.company.orchestrator.api.response.PagedResponseContent;
 import com.company.orchestrator.api.response.ResponseContent;
 import com.company.orchestrator.api.response.TransferDto;
 import com.company.orchestrator.api.response.TransferResponseDto;
+import com.company.orchestrator.api.validator.PageParametersValidator;
 import com.company.orchestrator.api.validator.TransferInitiateRequestValidator;
 import com.company.orchestrator.audit.model.AuditEvent;
 import com.company.orchestrator.domain.facade.TransferOrchestrator;
 import com.company.orchestrator.domain.model.TransferStatus;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,43 +39,95 @@ public class TransferOrchestratorController {
 
     private final TransferOrchestrator transferOrchestrator;
     private final TransferInitiateRequestValidator transferInitiateRequestValidator;
+    private final PageParametersValidator pageParametersValidator;
 
-    /**
-     * Registers custom validator for TransferRequestDto
-     * This validator will be invoked when @Valid annotation is used
-     */
-    @InitBinder("transferRequestDto")
-    protected void initBinder(WebDataBinder binder) {
-        binder.addValidators(transferInitiateRequestValidator);
-    }
-
+    @Operation(summary = "Initiate a transfer")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Initiated a transfer successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validation error",
+                    content = @Content(schema = @Schema(implementation = FieldValidationError.class))
+            )
+    })
     @PostMapping(ApiConstants.Path.TRANSFERS)
-    public ResponseEntity<TransferResponseDto> initiateTransfer(@Valid @RequestBody TransferInitiateDto requestDto) {
+    public ResponseEntity<TransferResponseDto> initiateTransfer(@RequestBody TransferInitiateDto requestDto,
+                                                                BindingResult result) {
+        transferInitiateRequestValidator.validate(requestDto, result);
+        if (result.hasErrors()) {
+            throw ApiException.fieldValidationError(result.getFieldErrors());
+        }
         TransferResponseDto response = transferOrchestrator.initiateTransfer(requestDto);
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Get transfer status by ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    description = "Transfer status retrieved successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Not found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            )
+    })
     @GetMapping(ApiConstants.Path.TRANSFER_BY_ID)
     public ResponseEntity<TransferStatus> getTransferStatus(@PathVariable Long id) {
         TransferStatus response = transferOrchestrator.getTransferStatus(id);
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Cancel a transfer")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Transfer cancelled successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Transfer not found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            )
+    })
     @DeleteMapping(ApiConstants.Path.TRANSFER_BY_ID)
     public ResponseEntity<Void> cancelTransfer(@PathVariable Long id) {
         transferOrchestrator.cancelTransfer(id);
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "List transfers")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Transfers retrieved successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid page parameters",
+                    content = @Content(schema = @Schema(implementation = FieldValidationError.class))
+            )
+    })
     @GetMapping(ApiConstants.Path.TRANSFERS)
-    public ResponseEntity<PagedResponseContent<TransferDto>> getTransfers(@RequestParam(defaultValue = "0") @Min(0) int page,
-                                                                          @RequestParam(defaultValue = "10") @Min(1) int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<TransferDto> transfers = transferOrchestrator.findTransfers(pageable);
+    public ResponseEntity<PagedResponseContent<TransferDto>> getTransfers(@ModelAttribute PageParameters pageParameters, BindingResult result) {
+        pageParametersValidator.validate(pageParameters, result);
+        if (result.hasErrors()) {
+            throw ApiException.fieldValidationError(result.getFieldErrors());
+        }
+        Page<TransferDto> transfers = transferOrchestrator.findTransfers(pageParameters.getPageable());
         return ResponseEntity.ok(new PagedResponseContent<>(transfers));
     }
 
-
+    @Operation(summary = "List audit logs of a transfer")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Audit logs retrieved successfully"
+            )
+    })
     @GetMapping(ApiConstants.Path.GET_AUDIT_LOGS)
     public ResponseEntity<ResponseContent<List<AuditEvent>>> getAuditLogsByTransferId(@PathVariable Long id) {
         List<AuditEvent> transfers = transferOrchestrator.getTransferAuditLogs(id);

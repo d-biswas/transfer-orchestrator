@@ -1,0 +1,20 @@
+{
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+  },
+  "@type": "Asset",
+  "@id": "asset-001",
+  "properties": {
+    "name": "Production Metrics Dataset",
+    "description": "Sample production metrics from manufacturing line",
+    "contenttype": "application/json",
+    "version": "1.0"
+  },
+  "dataAddress": {
+    "@type": "DataAddress",
+    "type": "HttpData",
+    "baseUrl": "http://provider-edc:7173/api/public/data/production-metrics",
+    "proxyMethod": "true",
+    "proxyPath": "true"
+  }
+}

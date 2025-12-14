@@ -1,5 +1,6 @@
 package com.company.orchestrator.domain.service.impl;
 
+import com.company.orchestrator.api.exception.NotFoundException;
 import com.company.orchestrator.domain.model.DataType;
 import com.company.orchestrator.domain.model.TransferStatus;
 import com.company.orchestrator.domain.service.TransferStateService;
@@ -9,7 +10,6 @@ import com.company.orchestrator.infrastructure.persistence.repository.TransferRe
 import com.company.orchestrator.infrastructure.persistence.repository.TransferStateHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implementation of TransferStateService
@@ -32,12 +33,20 @@ public class TransferStateServiceImpl implements TransferStateService {
     private final TransferStateHistoryRepository stateHistoryRepository;
 
     /**
+     * Find a transfer request by ID
+     */
+    @Override
+    public Optional<TransferRequestEntity> findTransferById(Long transferId) {
+        return transferRequestRepository.findById(transferId);
+    }
+
+    /**
      * Get a transfer request by ID
      */
     @Override
     public TransferRequestEntity getTransferById(Long transferId) {
         return transferRequestRepository.findById(transferId)
-                .orElseThrow(() -> new IllegalArgumentException("Transfer not found: " + transferId));
+                .orElseThrow(() -> new NotFoundException("Transfer not found: " + transferId));
     }
 
     /**
@@ -116,19 +125,6 @@ public class TransferStateServiceImpl implements TransferStateService {
 
         recordStateTransition(transferId, oldStatus, TransferStatus.CANCELLED);
         log.info("Transfer cancelled: transferId={}, previousState={}", transferId, oldStatus);
-    }
-
-    /**
-     * Gets current status of a transfer
-     */
-    @Override
-    public TransferStatus getStatus(Long transferId) {
-        log.debug("Getting transfer status: transferId={}", transferId);
-
-        TransferRequestEntity transfer = transferRequestRepository.findById(transferId)
-                .orElseThrow(() -> new IllegalArgumentException("Transfer not found: " + transferId));
-
-        return transfer.getStatus();
     }
 
     /**
