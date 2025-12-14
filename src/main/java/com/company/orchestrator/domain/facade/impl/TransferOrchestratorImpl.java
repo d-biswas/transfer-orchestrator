@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.company.orchestrator.domain.utils.Constants.SYSTEM_ACTOR;
+
 /**
  * Orchestrator facade for managing end-to-end transfer lifecycle
  * Coordinates policy evaluation, EDC contract negotiation, transfer execution, and event publishing
@@ -34,8 +36,6 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
     private final PolicyService policyService;
     private final EdcConnectorClient edcClient;
     private final AuditService auditService;
-
-    private static final String SYSTEM_ACTOR = "SYSTEM";
 
     /**
      * Initiates a data transfer with orchestration
@@ -191,14 +191,6 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
                             transferId, currentStatus);
                 }
             }
-
-            transferStateService.cancelTransfer(transferId, SYSTEM_ACTOR);
-            auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.CANCELLED);
-
-            // EDC will send a callback confirming termination, which will publish a TransferFailedEvent
-            // with error code "EDC_CALLBACK_TERMINATED"
-            // No need to publish event here - let EDC callback handle it
-
             log.info("Transfer cancelled successfully: transferId={}, previousStatus={}", transferId, currentStatus);
 
         } catch (IllegalArgumentException | IllegalStateException ex) {

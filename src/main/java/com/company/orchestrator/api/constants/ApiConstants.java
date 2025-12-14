@@ -1,5 +1,8 @@
 package com.company.orchestrator.api.constants;
 
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class ApiConstants {
     public final static String API_VERSION = "/api/v1";
 

@@ -170,7 +170,8 @@ public class TransferEventHandler {
             // Only update if not already in NEGOTIATED or terminal state
             if (currentStatus != TransferStatus.NEGOTIATED &&
                     currentStatus != TransferStatus.COMPLETED &&
-                    currentStatus != TransferStatus.FAILED) {
+                    currentStatus != TransferStatus.FAILED &&
+                    currentStatus != TransferStatus.CANCELLED) {
 
                 transferStateService.updateEdcContractAgreementId(transferId, event.getAgreementId());
                 transferStateService.updateState(transferId, TransferStatus.NEGOTIATED, KAFKA_EVENT_ACTOR);
@@ -204,7 +205,8 @@ public class TransferEventHandler {
             // Only update if not already in TRANSFER_IN_PROGRESS or terminal state
             if (currentStatus != TransferStatus.TRANSFER_IN_PROGRESS &&
                     currentStatus != TransferStatus.COMPLETED &&
-                    currentStatus != TransferStatus.FAILED) {
+                    currentStatus != TransferStatus.FAILED &&
+                    currentStatus != TransferStatus.CANCELLED) {
 
                 transferStateService.updateState(transferId, TransferStatus.TRANSFER_IN_PROGRESS, KAFKA_EVENT_ACTOR);
                 auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.TRANSFER_IN_PROGRESS);

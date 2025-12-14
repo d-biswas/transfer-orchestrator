@@ -17,7 +17,7 @@ import java.io.Serial;
 @NoArgsConstructor
 public class TransferInProgressEvent extends BaseTransferEvent {
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 6859899951912273577L;
 
     /** EDC transfer process ID */
     private String edcTransferProcessId;

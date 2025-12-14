@@ -117,6 +117,8 @@ spring:
         name: transfer.completed
       transfer-failed:
         name: transfer.failed
+      transfer-terminated:
+        name: transfer.terminated
       dlq:
         name: orchestrator-dlq
     topic-config:

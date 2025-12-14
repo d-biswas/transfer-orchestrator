@@ -1,6 +1,8 @@
 package com.company.orchestrator.infrastructure.edc.callback;
 
 import com.company.orchestrator.api.constants.ApiConstants;
+import com.company.orchestrator.audit.service.AuditService;
+import com.company.orchestrator.domain.model.TransferStatus;
 import com.company.orchestrator.domain.service.TransferStateService;
 import com.company.orchestrator.infrastructure.edc.connector.EdcConnectorClient;
 import com.company.orchestrator.infrastructure.edc.model.TransferProcessResult;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.Map;
 
+import static com.company.orchestrator.domain.utils.Constants.SYSTEM_ACTOR;
+
 /**
  * Controller for handling EDC callbacks and data reception
  * These endpoints are called by the provider EDC connector during the transfer lifecycle
@@ -29,6 +33,7 @@ import java.util.Map;
 @RequestMapping(ApiConstants.API_VERSION + "/transfers")
 public class EdcCallbackController {
 
+    private final AuditService auditService;
     private final TransferStateService transferStateService;
     private final TransferEventPublisher eventPublisher;
     private final EdcConnectorClient edcClient;
@@ -234,12 +239,22 @@ public class EdcCallbackController {
                         log.info("Transfer completed: transferId={} Data will be arrived soon", transferId);
 
                 // TRANSFER FAILED
-                case "FAILED", "TERMINATED" -> {
+                case "FAILED" -> {
                     log.error("Transfer failed: transferId={}, state={}", transferId, state);
                     String errorMsg = extractString(payload, "errorDetail", "error", "message");
                     eventPublisher.publishTransferFailed(transferId,
                         errorMsg != null ? errorMsg : "Transfer " + state.toLowerCase(),
                         TransferFailedErrorCode.EDC_CALLBACK_FAILED);
+                }
+
+                // TRANSFER TERMINATED
+                case "TERMINATED" -> {
+                    // Immediate action: the termination happens right away.
+                    log.error("Transfer canceled: transferId={}, state={}", transferId, state);
+                    TransferRequestEntity transferEntity = transferStateService.getTransferById(transferId);
+                    TransferStatus currentStatus = transferEntity.getStatus();
+                    transferStateService.cancelTransfer(transferId, SYSTEM_ACTOR);
+                    auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.CANCELLED);
                 }
 
                 // IGNORE intermediate states

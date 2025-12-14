@@ -19,7 +19,7 @@ import java.time.Instant;
 @NoArgsConstructor
 public class TransferContractNegotiatedEvent extends BaseTransferEvent {
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2092915230325147027L;
 
     /** Negotiation ID */
     private String agreementId;

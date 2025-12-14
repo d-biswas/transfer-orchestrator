@@ -17,7 +17,7 @@ import java.io.Serial;
 @NoArgsConstructor
 public class TransferFailedEvent extends BaseTransferEvent {
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -4770646383640739791L;
 
     private String errorMessage;
     private String errorCode;
