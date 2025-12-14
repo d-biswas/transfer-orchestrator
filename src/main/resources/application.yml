@@ -143,9 +143,9 @@ edc:
     negotiation-agreed-to-finalized-delay-ms: "${MOCK_NEGOTIATION_AGREED_TO_FINALIZED_DELAY_MS:2000}"
 
     # Transfer process delays (milliseconds)
-    transfer-initial-to-provisioning-delay-ms: "${MOCK_TRANSFER_INITIAL_TO_PROVISIONING_DELAY_MS:1000}"
-    transfer-provisioning-to-started-delay-ms: "${MOCK_TRANSFER_PROVISIONING_TO_STARTED_DELAY_MS:2000}"
-    transfer-started-to-completed-delay-ms: "${MOCK_TRANSFER_STARTED_TO_COMPLETED_DELAY_MS:3000}"
+    transfer-initial-to-provisioning-delay-ms: "${MOCK_TRANSFER_INITIAL_TO_PROVISIONING_DELAY_MS:10000}"
+    transfer-provisioning-to-started-delay-ms: "${MOCK_TRANSFER_PROVISIONING_TO_STARTED_DELAY_MS:10000}"
+    transfer-started-to-completed-delay-ms: "${MOCK_TRANSFER_STARTED_TO_COMPLETED_DELAY_MS:20000}"
 
     # Failure simulation (0.0 = no failures, 0.1 = 10% failure rate, 1.0 = always fail)
     failure-rate: "${MOCK_EDC_FAILURE_RATE:0.0}"

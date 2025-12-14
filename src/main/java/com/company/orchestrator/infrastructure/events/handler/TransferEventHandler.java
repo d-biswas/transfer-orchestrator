@@ -236,12 +236,18 @@ public class TransferEventHandler {
         try {
             Long transferId = event.getTransferId();
             TransferStatus currentStatus = transferStateService.getStatus(transferId);
-            transferStateService.updateState(transferId, TransferStatus.COMPLETED, KAFKA_EVENT_ACTOR);
-            auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.COMPLETED);
+            // Only update if not already in COMPLETED or terminal state
+            if (currentStatus != TransferStatus.COMPLETED &&
+                    currentStatus != TransferStatus.CANCELLED) {
+                transferStateService.updateState(transferId, TransferStatus.COMPLETED, KAFKA_EVENT_ACTOR);
+                auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.COMPLETED);
 
-            log.info("Transfer completed successfully: transferId={}, bytesTransferred={}, edcProcessId={}",
-                    transferId, event.getBytesTransferred(), event.getEdcTransferProcessId());
-
+                log.info("Transfer completed successfully: transferId={}, bytesTransferred={}, edcProcessId={}",
+                        transferId, event.getBytesTransferred(), event.getEdcTransferProcessId());
+            } else {
+                log.debug("Transfer already completed or terminal state: transferId={}, currentStatus={}",
+                        transferId, currentStatus);
+            }
         } catch (Exception ex) {
             log.error("Error in processTransferCompleted: transferId={}, error={}",
                     event.getTransferId(), ex.getMessage(), ex);
@@ -260,10 +266,16 @@ public class TransferEventHandler {
         try {
             Long transferId = event.getTransferId();
             TransferStatus currentStatus = transferStateService.getStatus(transferId);
-            transferStateService.updateState(transferId, TransferStatus.FAILED, KAFKA_EVENT_ACTOR);
-            auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.FAILED);
-            log.error("Transfer failed: transferId={}, errorCode={}, errorMessage={}, previousState={}",
-                    transferId, event.getErrorCode(), event.getErrorMessage(), currentStatus);
+            if (currentStatus != TransferStatus.FAILED &&
+                    currentStatus != TransferStatus.CANCELLED) {
+                transferStateService.updateState(transferId, TransferStatus.FAILED, KAFKA_EVENT_ACTOR);
+                auditService.logStateTransition(transferId.toString(), currentStatus, TransferStatus.FAILED);
+                log.error("Transfer failed: transferId={}, errorCode={}, errorMessage={}, previousState={}",
+                        transferId, event.getErrorCode(), event.getErrorMessage(), currentStatus);
+            } else {
+                log.debug("Transfer already failed or terminal state: transferId={}, currentStatus={}",
+                        transferId, currentStatus);
+            }
         } catch (Exception ex) {
             log.error("Error in processTransferFailed: transferId={}, error={}",
                     event.getTransferId(), ex.getMessage(), ex);

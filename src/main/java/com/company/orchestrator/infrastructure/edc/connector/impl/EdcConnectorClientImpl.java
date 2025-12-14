@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class EdcConnectorClientImpl implements EdcConnectorClient {
 
-    private final RestTemplate mockEdcRestTemplate;
+    private final RestTemplate restTemplate;
     private final EdcProperties edcProperties;
     private final ScheduledExecutorService mockEdcScheduler;
 
@@ -314,7 +314,7 @@ public class EdcConnectorClientImpl implements EdcConnectorClient {
             HttpEntity<byte[]> requestEntity = new HttpEntity<>(dataBytes, headers);
 
             // Send to data/receive endpoint
-            mockEdcRestTemplate.postForEntity(destinationUrl, requestEntity, String.class);
+            restTemplate.postForEntity(destinationUrl, requestEntity, String.class);
 
             log.info("Successfully sent mock data: transferProcessId={}, bytes={}", transferProcessId, dataBytes.length);
         } catch (Exception e) {
@@ -371,7 +371,7 @@ public class EdcConnectorClientImpl implements EdcConnectorClient {
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
-            mockEdcRestTemplate.postForEntity(callbackUrl, request, String.class);
+            restTemplate.postForEntity(callbackUrl, request, String.class);
 
             log.debug("Mock: Callback sent successfully");
         } catch (Exception e) {
