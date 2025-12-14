@@ -1,23 +1,42 @@
 package com.company.orchestrator.api.dto;
 
 import com.company.orchestrator.domain.model.DataType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
-
-
+/**
+ * Request DTO for initiating a data transfer
+ * <p>
+ * Validated by {@link com.company.orchestrator.api.validator.TransferRequestValidator}
+ * </p>
+ */
 @Getter
 @Setter
+@Schema(description = "Request to initiate a data transfer")
 public class TransferRequestDto {
-    private String transferId;           // Unique ID of the transfer
-    private DataType dataType;             // e.g., "ProductionData", "QualityReport"
-    private String consumerId;           // Who is receiving the data
-    private String providerId;
+
+    @Schema(description = "Asset ID to transfer", example = "asset-001", requiredMode = Schema.RequiredMode.REQUIRED)
     private String assetId;
-    private String consumerRegion;       // Region of the consumer
-    private String consumerCertification; // e.g., "ISO9001"
-    private String usagePurpose;         // e.g., "QualityAnalysis"
-    private long dataSize;               // in bytes
-    private Instant requestTime;         // Timestamp of the request
+
+    @Schema(description = "Provider participant ID", example = "provider-participant", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String providerId;
+
+    @Schema(description = "Provider DSP endpoint", example = "http://provider-edc:7172/api/v1/dsp", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String providerUrl;
+
+    @Schema(description = "Consumer participant ID", example = "consumer-participant", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String consumerId;
+
+    @Schema(description = "Data type", example = "QUALITY", requiredMode = Schema.RequiredMode.REQUIRED)
+    private DataType dataType;
+
+    @Schema(description = "Consumer region for policy evaluation", example = "EU")
+    private String consumerRegion;
+
+    @Schema(description = "Consumer certification for policy evaluation", example = "ISO9001")
+    private String consumerCertification;
+
+    @Schema(description = "Data usage purpose for policy evaluation", example = "QualityAnalysis")
+    private String usagePurpose;
 }

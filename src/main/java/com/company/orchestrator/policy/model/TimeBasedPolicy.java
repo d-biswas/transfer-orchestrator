@@ -3,6 +3,7 @@ package com.company.orchestrator.policy.model;
 import com.company.orchestrator.api.dto.TransferRequestDto;
 import lombok.RequiredArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
@@ -14,8 +15,11 @@ public class TimeBasedPolicy implements Policy {
 
     @Override
     public PolicyEvaluationResult evaluate(TransferRequestDto request) {
-        LocalTime now = LocalTime.now(ZoneId.of("CET"));
-        boolean allowed = !now.isBefore(startTime) && !now.isAfter(endTime);
+        // Use current time for policy evaluation
+        LocalTime requestedTime = Instant.now()
+                .atZone(ZoneId.of("UTC"))
+                .toLocalTime();
+        boolean allowed = !requestedTime.isBefore(startTime) && !requestedTime.isAfter(endTime);
         return new PolicyEvaluationResult(this, allowed,
             allowed ? null : "Transfer not allowed outside business hours");
     }

@@ -30,7 +30,8 @@ public class RateLimitPolicy implements Policy {
     @Override
     public PolicyEvaluationResult evaluate(TransferRequestDto request) {
         String consumerId = request.getConsumerId();
-        Instant now = request.getRequestTime().atZone(java.time.ZoneId.systemDefault()).toInstant();
+        // Use current time for rate limit evaluation
+        Instant now = Instant.now();
 
         String key = KEY_PREFIX + consumerId;
         long nowMillis = now.toEpochMilli();

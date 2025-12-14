@@ -8,10 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-/**
- * OpenAPI/Swagger configuration for Transfer Orchestrator API
- * No authentication required - open API for EDC callbacks and transfer management
- */
+
 @Configuration
 public class OpenApiConfig {
 

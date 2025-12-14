@@ -263,7 +263,7 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
         return ContractOffer.builder()
                 .providerId(request.getProviderId())
                 .assetId(request.getAssetId())
-                .providerUrl("http://provider-edc:8282/api/v1/dsp")
+                .providerUrl("http://provider-edc:8282/protocol")
                 .offerId("offer-" + transfer.getId())
                 .consumerCallbackUrl("http://transfer-orchestrator:8080/api/v1/transfers/callback")
                 .build();

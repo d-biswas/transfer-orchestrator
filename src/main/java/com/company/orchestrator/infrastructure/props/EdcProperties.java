@@ -8,40 +8,52 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "edc.connector")
+@ConfigurationProperties(prefix = "edc.mock")
 public class EdcProperties {
-    /**
-     * EDC Management API URL
-     */
-    private String managementUrl;
 
     /**
-     * API Key for EDC authentication
+     * Base URL for callbacks to orchestrator
      */
-    private String apiKey;
+    private String callbackBaseUrl = "http://localhost:8080";
 
     /**
-     * Participant ID
+     * Delay from REQUESTED to OFFERED state (milliseconds)
      */
-    private String participantId;
+    private long negotiationRequestedToOfferedDelayMs = 2000;
 
     /**
-     * Negotiation timeout (seconds)
+     * Delay from OFFERED to AGREED state (milliseconds)
      */
-    private int negotiationTimeoutSeconds = 300;
+    private long negotiationOfferedToAgreedDelayMs = 3000;
 
     /**
-     * Polling interval (milliseconds)
+     * Delay from AGREED to FINALIZED state (milliseconds)
      */
-    private int pollingIntervalMillis = 1000;
+    private long negotiationAgreedToFinalizedDelayMs = 2000;
 
     /**
-     * Max retries for EDC calls
+     * Delay from INITIAL to PROVISIONING state (milliseconds)
      */
-    private int maxRetries = 3;
+    private long transferInitialToProvisioningDelayMs = 1000;
 
     /**
-     * Retry backoff (milliseconds)
+     * Delay from PROVISIONING to STARTED state (milliseconds)
      */
-    private int retryBackoffMillis = 2000;
+    private long transferProvisioningToStartedDelayMs = 2000;
+
+    /**
+     * Delay from STARTED to COMPLETED state (milliseconds)
+     */
+    private long transferStartedToCompletedDelayMs = 3000;
+
+    /**
+     * Failure simulation rate (0.0 to 1.0)
+     * 0.0 = no failures, 0.1 = 10% failure rate, 1.0 = always fail
+     */
+    private double failureRate = 0.0;
+
+    /**
+     * Thread pool size for scheduled callbacks
+     */
+    private int schedulerThreadPoolSize = 5;
 }

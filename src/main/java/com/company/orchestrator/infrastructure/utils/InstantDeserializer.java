@@ -1,4 +1,4 @@
-package com.company.orchestrator.infrastructure.config;
+package com.company.orchestrator.infrastructure.utils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

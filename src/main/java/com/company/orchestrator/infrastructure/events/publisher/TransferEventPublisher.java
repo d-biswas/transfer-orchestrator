@@ -24,6 +24,22 @@ public class TransferEventPublisher {
     private static final String SYSTEM_ACTOR = "SYSTEM";
 
     /**
+     * Publish contact negotiated event
+     */
+    public void publishContactNegotiated(Long transferId, String agreementId, String correlationId) {
+        TransferContractNegotiatedEvent event = TransferContractNegotiatedEvent.builder()
+                .transferId(transferId)
+                .agreementId(agreementId)
+                .correlationId(correlationId)
+                .timestamp(Instant.now())
+                .actor(SYSTEM_ACTOR)
+                .build();
+
+        String topic = kafkaProperties.getTopics().get("contact-negotiated").getName();
+        publish(topic, event);
+    }
+
+    /**
      * Publish transfer in progress event
      */
     public void publishTransferInProgress(Long transferId, String edcTransferProcessId, String edcState) {

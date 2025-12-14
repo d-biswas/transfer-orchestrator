@@ -107,10 +107,10 @@ spring:
         name: policy.approved
       policy-rejected:
         name: policy.rejected
-      transfer-negotiation-started:
-        name: transfer.negotiation.started
-      transfer-negotiation-completed:
-        name: transfer.negotiation.completed
+      negotiation-started:
+        name: negotiation.started
+      contact-negotiated:
+        name: negotiation.completed
       transfer-in-progress:
         name: transfer.in-progress
       transfer-completed:
@@ -130,20 +130,42 @@ http:
     max-total-connection: "${HTTP_CLIENT_MAX_TOTAL_CONNECTION:50}"
     max-connection-per-route: "${HTTP_CLIENT_CONNECTION_PER_ROUTE:10}"
 
-# EDC Connector Configuration
+# Mock EDC Configuration (ACTIVE BY DEFAULT - no real EDC needed!)
 edc:
-  connector:
-    management-url: "${EDC_MANAGEMENT_URL:http://localhost:8181/management}"
-    api-key: "${EDC_API_KEY:my-edc-connector-key}"
-    participant-id: "${EDC_PARTICIPANT_ID:my-edc-connector-id}"
-    negotiation-timeout-seconds: "${EDC_NEGOTIATION_TIMEOUT:300}"
-    polling-interval-millis: "${EDC_POLLING_INTERVAL:1000}"
-    max-retries: "${EDC_MAX_RETRIES:3}"
-    retry-backoff-millis: "${EDC_RETRY_BACKOFF:2000}"
+  mock:
+    callback-base-url: "${MOCK_EDC_CALLBACK_URL:http://localhost:8080}"
+
+    # Contract negotiation delays (milliseconds)
+    negotiation-requested-to-offered-delay-ms: "${MOCK_NEGOTIATION_REQUESTED_TO_OFFERED_DELAY_MS:2000}"
+    negotiation-offered-to-agreed-delay-ms: "${MOCK_NEGOTIATION_OFFERED_TO_AGREED_DELAY_MS:3000}"
+    negotiation-agreed-to-finalized-delay-ms: "${MOCK_NEGOTIATION_AGREED_TO_FINALIZED_DELAY_MS:2000}"
+
+    # Transfer process delays (milliseconds)
+    transfer-initial-to-provisioning-delay-ms: "${MOCK_TRANSFER_INITIAL_TO_PROVISIONING_DELAY_MS:1000}"
+    transfer-provisioning-to-started-delay-ms: "${MOCK_TRANSFER_PROVISIONING_TO_STARTED_DELAY_MS:2000}"
+    transfer-started-to-completed-delay-ms: "${MOCK_TRANSFER_STARTED_TO_COMPLETED_DELAY_MS:3000}"
+
+    # Failure simulation (0.0 = no failures, 0.1 = 10% failure rate, 1.0 = always fail)
+    failure-rate: "${MOCK_EDC_FAILURE_RATE:0.0}"
+
+    # Thread pool size for scheduled callbacks
+    scheduler-thread-pool-size: "${MOCK_EDC_SCHEDULER_POOL_SIZE:5}"
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,prometheus
+
+logging:
+  level:
+    # Kafka client libraries
+    org.apache.kafka.clients.producer: WARN
+    org.apache.kafka.clients.producer.internals: ERROR
+    org.apache.kafka.clients.consumer: WARN
+    org.apache.kafka.common: ERROR
+
+    # Spring Kafka
+    org.springframework.kafka: INFO
+    org.springframework.kafka.listener: INFO
 

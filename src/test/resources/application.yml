@@ -1,6 +1,15 @@
 server:
   port: 8080
 
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+  server:
+    url: http://localhost:8080
+    description: Test Server
+
 spring:
   datasource:
     url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
@@ -30,6 +39,66 @@ spring:
   batch:
     jdbc:
       initialize-schema: always
+
+  # Disable Redis cache for tests
+  cache:
+    type: none
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # Kafka test configuration
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+      retries: 5
+      linger-ms: 10
+      batch-size: 1048576
+      max-request-size: 5242880
+      enable-idempotence: true
+    consumer:
+      group-id: test-orchestrator-group
+      auto-offset-reset: earliest
+      retry:
+        max-attempts: 3
+        backoff-delay: 1000
+        backoff-multiplier: 2.0
+        max-interval: 10000
+    listener:
+      concurrency: 1
+      ack-mode: manual
+    topics:
+      transfer-requested:
+        name: test.transfer.requested
+      policy-approved:
+        name: test.policy.approved
+      policy-rejected:
+        name: test.policy.rejected
+      transfer-negotiation-started:
+        name: test.transfer.negotiation.started
+      transfer-negotiation-completed:
+        name: test.transfer.negotiation.completed
+      transfer-in-progress:
+        name: test.transfer.in-progress
+      transfer-completed:
+        name: test.transfer.completed
+      transfer-failed:
+        name: test.transfer.failed
+      dlq:
+        name: test.orchestrator-dlq
+    topic-config:
+      partitions: 1
+      replication-factor: 1
+
+# HTTP Client test configuration
+http:
+  client:
+    connect-timeout: 5000
+    read-timeout: 30000
+    max-total-connection: 10
+    max-connection-per-route: 5
 
 management:
   endpoints:
