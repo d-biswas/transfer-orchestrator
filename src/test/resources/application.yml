@@ -71,23 +71,25 @@ spring:
       ack-mode: manual
     topics:
       transfer-requested:
-        name: test.transfer.requested
+        name: transfer.requested
       policy-approved:
-        name: test.policy.approved
+        name: policy.approved
       policy-rejected:
-        name: test.policy.rejected
-      transfer-negotiation-started:
-        name: test.transfer.negotiation.started
-      transfer-negotiation-completed:
-        name: test.transfer.negotiation.completed
+        name: policy.rejected
+      negotiation-started:
+        name: negotiation.started
+      contact-negotiated:
+        name: negotiation.completed
       transfer-in-progress:
-        name: test.transfer.in-progress
+        name: transfer.in-progress
       transfer-completed:
-        name: test.transfer.completed
+        name: transfer.completed
       transfer-failed:
-        name: test.transfer.failed
+        name: transfer.failed
+      transfer-terminated:
+        name: transfer.terminated
       dlq:
-        name: test.orchestrator-dlq
+        name: orchestrator-dlq
     topic-config:
       partitions: 1
       replication-factor: 1
