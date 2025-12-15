@@ -25,22 +25,29 @@ public class AuditLogRepositoryImpl implements AuditLogRepositoryCustom {
     public ComplianceReport generateComplianceReport(DateRange dateRange) {
         QAuditLogEntity audit = QAuditLogEntity.auditLogEntity;
 
-        NumberExpression<Long> totalTransfers = audit.id.count();
+        // Total distinct transfers (any transferId that has a relevant event)
+        NumberExpression<Long> totalTransfers = audit.transferId.countDistinct();
+
+        // Successful transfers = distinct transferId with TRANSFER_PROCESS_COMPLETED
         NumberExpression<Long> successfulTransfers = new CaseBuilder()
                 .when(audit.eventType.eq(AuditEventType.TRANSFER_PROCESS_COMPLETED))
-                .then(1L)
-                .otherwise(0L)
-                .sum();
+                .then(audit.transferId)
+                .otherwise((Long) null)
+                .countDistinct();
+
+        // Failed transfers = distinct transferId with TRANSFER_PROCESS_FAILED
         NumberExpression<Long> failedTransfers = new CaseBuilder()
                 .when(audit.eventType.eq(AuditEventType.TRANSFER_PROCESS_FAILED))
-                .then(1L)
-                .otherwise(0L)
-                .sum();
+                .then(audit.transferId)
+                .otherwise((Long) null)
+                .countDistinct();
+
+        // Denied transfers = distinct transferId with POLICY_EVALUATION_FAILED
         NumberExpression<Long> deniedTransfers = new CaseBuilder()
                 .when(audit.eventType.eq(AuditEventType.POLICY_EVALUATION_FAILED))
-                .then(1L)
-                .otherwise(0L)
-                .sum();
+                .then(audit.transferId)
+                .otherwise((Long) null)
+                .countDistinct();
 
         List<Tuple> results = jpaQueryFactory
                 .select(audit.consumerId,
