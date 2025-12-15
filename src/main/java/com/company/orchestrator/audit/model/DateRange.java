@@ -15,10 +15,6 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DateRange {
-
-    /** Start of the date range (inclusive) */
     private Instant from;
-
-    /** End of the date range (inclusive) */
     private Instant to;
 }

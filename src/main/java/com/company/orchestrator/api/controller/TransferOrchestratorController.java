@@ -4,15 +4,18 @@ import com.company.orchestrator.api.constants.ApiConstants;
 import com.company.orchestrator.api.error.ApiError;
 import com.company.orchestrator.api.error.FieldValidationError;
 import com.company.orchestrator.api.exception.ApiException;
+import com.company.orchestrator.api.request.DateParameters;
 import com.company.orchestrator.api.request.PageParameters;
 import com.company.orchestrator.api.request.TransferInitiateDto;
 import com.company.orchestrator.api.response.PagedResponseContent;
 import com.company.orchestrator.api.response.ResponseContent;
 import com.company.orchestrator.api.response.TransferDto;
 import com.company.orchestrator.api.response.TransferResponseDto;
+import com.company.orchestrator.api.validator.DateParametersValidator;
 import com.company.orchestrator.api.validator.PageParametersValidator;
 import com.company.orchestrator.api.validator.TransferInitiateRequestValidator;
 import com.company.orchestrator.audit.model.AuditEvent;
+import com.company.orchestrator.audit.model.ComplianceReport;
 import com.company.orchestrator.domain.facade.TransferOrchestrator;
 import com.company.orchestrator.domain.model.TransferStatus;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,6 +41,7 @@ public class TransferOrchestratorController {
     private final TransferOrchestrator transferOrchestrator;
     private final TransferInitiateRequestValidator transferInitiateRequestValidator;
     private final PageParametersValidator pageParametersValidator;
+    private final DateParametersValidator dateParametersValidator;
 
     @Operation(summary = "Initiate a transfer")
     @ApiResponses({
@@ -130,5 +134,28 @@ public class TransferOrchestratorController {
     public ResponseEntity<ResponseContent<List<AuditEvent>>> getAuditLogsByTransferId(@PathVariable Long id) {
         List<AuditEvent> transfers = transferOrchestrator.getTransferAuditLogs(id);
         return ResponseEntity.ok(new ResponseContent<>(transfers));
+    }
+
+    @Operation(summary = "Generate compliance report")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Compliance report generated successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid date parameters",
+                    content = @Content(schema = @Schema(implementation = FieldValidationError.class))
+            )
+    })
+    @GetMapping(ApiConstants.Path.GET_TRANSFER_ANALYTICS)
+    public ResponseEntity<ResponseContent<ComplianceReport>> getTransferAnalytics(@ModelAttribute DateParameters dateParameters,
+                                                                                  BindingResult result) {
+        dateParametersValidator.validate(dateParameters, result);
+        if (result.hasErrors()) {
+            throw ApiException.fieldValidationError(result.getFieldErrors());
+        }
+        ComplianceReport complianceReport = transferOrchestrator.getTransferAnalytics(dateParameters);
+        return ResponseEntity.ok(new ResponseContent<>(complianceReport));
     }
 }

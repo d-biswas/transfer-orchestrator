@@ -160,58 +160,8 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    public ComplianceReport generateComplianceReport(DateRange range) {
-        log.info("Generating compliance report from {} to {}", range.getFrom(), range.getTo());
-
-        // For now, get all audit logs (in production, you'd filter by date)
-        List<AuditLogEntity> allLogs = auditLogRepository.findAll();
-
-        // Filter by date range
-        List<AuditLogEntity> logsInRange = allLogs.stream()
-                .filter(log -> !log.getCreatedAt().isBefore(range.getFrom())
-                        && !log.getCreatedAt().isAfter(range.getTo()))
-                .toList();
-
-        // Calculate statistics
-        long totalTransfers = logsInRange.stream()
-                .filter(log -> log.getEventType() == AuditEventType.TRANSFER_REQUESTED)
-                .count();
-
-        long successfulTransfers = logsInRange.stream()
-                .filter(log -> log.getEventType() == AuditEventType.TRANSFER_PROCESS_COMPLETED)
-                .count();
-
-        long failedTransfers = logsInRange.stream()
-                .filter(log -> log.getEventType() == AuditEventType.TRANSFER_PROCESS_FAILED)
-                .count();
-
-        long deniedTransfers = logsInRange.stream()
-                .filter(log -> log.getEventType() == AuditEventType.POLICY_EVALUATION_FAILED)
-                .count();
-
-        // Policy violation summary
-        Map<String, Long> policyViolations = logsInRange.stream()
-                .filter(log -> log.getEventType() == AuditEventType.POLICY_EVALUATION_FAILED)
-                .collect(Collectors.groupingBy(
-                        log -> (String) log.getMetadata().getOrDefault("policyType", "UNKNOWN"),
-                        Collectors.counting()
-                ));
-
-        // Convert to audit events
-        List<AuditEvent> events = logsInRange.stream()
-                .map(this::toAuditEvent)
-                .collect(Collectors.toList());
-
-        return ComplianceReport.builder()
-                .generatedAt(Instant.now())
-                .dateRange(range)
-                .totalTransfers(totalTransfers)
-                .successfulTransfers(successfulTransfers)
-                .failedTransfers(failedTransfers)
-                .deniedTransfers(deniedTransfers)
-                .policyViolations(policyViolations)
-                .events(events)
-                .build();
+    public ComplianceReport generateComplianceReport(DateRange dateRange) {
+        return auditLogRepository.generateComplianceReport(dateRange);
     }
 
     /**

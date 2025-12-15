@@ -1,12 +1,13 @@
 package com.company.orchestrator.domain.facade.impl;
 
-import com.company.orchestrator.api.error.ErrorReason;
-import com.company.orchestrator.api.exception.ApiException;
 import com.company.orchestrator.api.exception.NotFoundException;
+import com.company.orchestrator.api.request.DateParameters;
 import com.company.orchestrator.api.request.TransferInitiateDto;
 import com.company.orchestrator.api.response.TransferDto;
 import com.company.orchestrator.api.response.TransferResponseDto;
 import com.company.orchestrator.audit.model.AuditEvent;
+import com.company.orchestrator.audit.model.ComplianceReport;
+import com.company.orchestrator.audit.model.DateRange;
 import com.company.orchestrator.audit.service.AuditService;
 import com.company.orchestrator.domain.facade.TransferOrchestrator;
 import com.company.orchestrator.domain.model.TransferStatus;
@@ -18,6 +19,7 @@ import com.company.orchestrator.infrastructure.events.model.TransferFailedErrorC
 import com.company.orchestrator.infrastructure.persistence.entity.TransferRequestEntity;
 import com.company.orchestrator.policy.model.PolicyEvaluationResult;
 import com.company.orchestrator.policy.service.PolicyService;
+import com.company.orchestrator.utils.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -236,6 +238,18 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
     public Optional<TransferDto> findTransferById(Long transferId) {
         return transferStateService.findTransferById(transferId)
                 .map(this::toTransferDto);
+    }
+
+    /**
+     * Generates compliance report
+     */
+    @Override
+    public ComplianceReport getTransferAnalytics(DateParameters parameters) {
+        DateRange dateRange = DateRange.builder()
+                .from(DateUtils.toStartOfDayUtc(parameters.getFromDate()))
+                .to(DateUtils.toEndOfDayUtc(parameters.getToDate()))
+                .build();
+        return auditService.generateComplianceReport(dateRange);
     }
 
     /**

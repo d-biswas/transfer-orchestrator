@@ -3,8 +3,7 @@ package com.company.orchestrator.api.request;
 import com.company.orchestrator.api.validator.TransferInitiateRequestValidator;
 import com.company.orchestrator.domain.model.DataType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * Request DTO for initiating a data transfer
@@ -14,6 +13,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "Request to initiate a data transfer")
 public class TransferInitiateDto {
 

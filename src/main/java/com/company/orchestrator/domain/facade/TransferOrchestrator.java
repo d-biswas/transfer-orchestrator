@@ -1,9 +1,11 @@
 package com.company.orchestrator.domain.facade;
 
+import com.company.orchestrator.api.request.DateParameters;
 import com.company.orchestrator.api.request.TransferInitiateDto;
 import com.company.orchestrator.api.response.TransferDto;
 import com.company.orchestrator.api.response.TransferResponseDto;
 import com.company.orchestrator.audit.model.AuditEvent;
+import com.company.orchestrator.audit.model.ComplianceReport;
 import com.company.orchestrator.domain.model.TransferStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,8 +40,14 @@ public interface TransferOrchestrator {
      * Retrieves page of transfers
      */
     Page<TransferDto> findTransfers(Pageable pageable);
+
     /**
      * Finds a transfer by its ID
      */
     Optional<TransferDto> findTransferById(Long transferId);
+
+    /**
+     * Generates compliance report
+     */
+    ComplianceReport getTransferAnalytics(DateParameters parameters);
 }

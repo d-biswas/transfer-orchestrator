@@ -54,12 +54,14 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
 
     // QueryDSL
-    implementation 'io.github.openfeign.querydsl:querydsl-jpa:7.1'
-    annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:7.1:jakarta'
+    implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+    annotationProcessor 'com.querydsl:querydsl-apt:5.1.0:jakarta'
+
+    // JPA API for annotation processing
+    compileOnly 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api:3.1.0'
 
 
-    implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
-    implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -69,6 +71,11 @@ dependencies {
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.3'
 
     // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'net.bytebuddy:byte-buddy-agent:1.17.7'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.batch:spring-batch-test'
     testRuntimeOnly 'com.h2database:h2'
@@ -76,6 +83,9 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    jvmArgs '-javaagent:' + String.valueOf(configurations.testRuntimeClasspath.find {
+        it.name.contains("byte-buddy-agent")
+    })
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -84,7 +94,9 @@ tasks.withType(JavaCompile).configureEach {
     targetCompatibility = JavaVersion.VERSION_25
 }
 
+// --------------------------
 // Docker build task
+// --------------------------
 tasks.register('dockerBuildImage', Exec) {
     group = 'docker'
     description = 'Build Docker image for the application'
@@ -103,4 +115,16 @@ tasks.register('dockerBuildImage', Exec) {
     doLast {
         println "Docker image built successfully: ${imageName}:${imageTag}"
     }
+}
+
+java {
+    withSourcesJar()
+}
+
+sourceSets {
+    main.java.srcDirs += 'build/generated/sources/annotationProcessor/java/main'
+}
+
+tasks.named("sourcesJar") {
+    dependsOn("compileJava")
 }
