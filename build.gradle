@@ -66,6 +66,9 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // Observability
+    implementation 'io.micrometer:micrometer-registry-prometheus'           // Prometheus metrics
+
     // Others
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.3'
