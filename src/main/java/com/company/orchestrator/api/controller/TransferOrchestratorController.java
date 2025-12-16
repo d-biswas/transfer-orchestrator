@@ -159,7 +159,7 @@ public class TransferOrchestratorController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Transfer request evaluated successfully"
+                    description = "Policies evaluated successfully"
             ),
             @ApiResponse(
                     responseCode = "400",
