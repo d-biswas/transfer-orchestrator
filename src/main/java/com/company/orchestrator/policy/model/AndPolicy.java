@@ -13,15 +13,15 @@ public class AndPolicy implements Policy {
 
     @Override
     public PolicyEvaluationResult evaluate(TransferInitiateDto request) {
-        List<String> violations = new ArrayList<>();
+        List<String> violationReasons = new ArrayList<>();
         for (Policy p : policies) {
             PolicyEvaluationResult result = p.evaluate(request);
             if (!result.allowed()) {
-                violations.add(result.violationReason());
+                violationReasons.add(result.violationReason());
             }
         }
-        boolean allowed = violations.isEmpty();
+        boolean allowed = violationReasons.isEmpty();
         return new PolicyEvaluationResult(this, allowed,
-            allowed ? null : String.join("; ", violations));
+            allowed ? null : String.join("; ", violationReasons));
     }
 }

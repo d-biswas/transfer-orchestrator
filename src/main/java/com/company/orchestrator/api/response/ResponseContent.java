@@ -7,6 +7,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Generic response content wrapper
+ * @param <T>
+ */
 @Getter
 @Setter
 @NoArgsConstructor

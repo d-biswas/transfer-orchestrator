@@ -6,6 +6,9 @@ import lombok.*;
 
 import java.time.Instant;
 
+/**
+ * Data Transfer Object representing a Transfer
+ */
 @Getter
 @Setter
 @AllArgsConstructor

@@ -29,7 +29,7 @@ public class TransferInitiateRequestValidator implements Validator {
     );
 
     private static final Set<String> VALID_CERTIFICATIONS = Set.of(
-            "ISO9001", "ISO27001", "SOC2", "TISAX"
+            "ISO9001"
     );
 
     private static final int MAX_ASSET_ID_LENGTH = 255;

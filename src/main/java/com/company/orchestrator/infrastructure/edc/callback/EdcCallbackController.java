@@ -84,7 +84,8 @@ public class EdcCallbackController {
                 eventPublisher.publishTransferCompleted(transferIdLong, transferRequest.getConsumerId(), (long) data.length, edcProcessId);
                 log.info("✅ Published TransferCompleted event: transferId={}", transferIdLong);
             }
-
+            // Final step. Data received successfully and can be stored to DB or S3.
+            // Transfer flow completed
             return ResponseEntity.ok(Map.of(
                     "status", "received",
                     "transferId", transferId != null ? transferId : "unknown",

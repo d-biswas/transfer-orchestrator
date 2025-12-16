@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Global exception handler for REST controllers
+ */
 @Log4j2
 @RestControllerAdvice
 @RequiredArgsConstructor

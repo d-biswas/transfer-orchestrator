@@ -9,6 +9,10 @@ import org.springframework.validation.Validator;
 
 import java.time.LocalDate;
 
+/**
+ * Custom validator for DateParameters
+ * Validates that fromDate is before or equal to toDate
+ */
 @Component
 @RequiredArgsConstructor
 public class DateParametersValidator implements Validator {

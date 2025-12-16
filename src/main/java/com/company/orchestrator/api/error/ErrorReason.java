@@ -3,6 +3,9 @@ package com.company.orchestrator.api.error;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Enumeration of error reasons to be used in API error responses
+ */
 @Getter
 @AllArgsConstructor
 public enum ErrorReason {

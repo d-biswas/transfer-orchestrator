@@ -12,6 +12,11 @@
       "maxRequestsPerHour": 100
     },
     {
+      "type": "CertificationPolicy",
+      "name": "EURegionPolicy",
+      "requiredCertification": "ISO9001"
+    },
+    {
       "type": "GeographicPolicy",
       "name": "EURegionPolicy",
       "allowedRegions": ["EU", "DE", "FR"]

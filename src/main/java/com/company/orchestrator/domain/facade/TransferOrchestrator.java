@@ -2,6 +2,7 @@ package com.company.orchestrator.domain.facade;
 
 import com.company.orchestrator.api.request.DateParameters;
 import com.company.orchestrator.api.request.TransferInitiateDto;
+import com.company.orchestrator.api.response.PolicyEvaluationResponse;
 import com.company.orchestrator.api.response.TransferDto;
 import com.company.orchestrator.api.response.TransferResponseDto;
 import com.company.orchestrator.audit.model.AuditEvent;
@@ -50,4 +51,9 @@ public interface TransferOrchestrator {
      * Generates compliance report
      */
     ComplianceReport getTransferAnalytics(DateParameters parameters);
+
+    /**
+     * Evaluates policies for a transfer request
+     */
+    PolicyEvaluationResponse evaluatePolicies(TransferInitiateDto request);
 }

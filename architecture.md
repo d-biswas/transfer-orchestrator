@@ -197,12 +197,17 @@ sequenceDiagram
     Audit-->>-Handler: Logged
     Handler-->>-Kafka: Acknowledged
 
-    %% Step 22-25: Transfer Completion
-    Note over EDC,BMW: Transfer Completion
+    %% Step 22: Transfer Completion Notification (Just Log)
+    Note over EDC,API: Transfer Completion Notification
     EDC->>+API: POST /callback/transfers<br/>{status: "COMPLETED", processId: "tp-999"}
+    API->>API: Log Info (Transfer Completed)
+    API-->>-EDC: 200 OK
+
+    %% Step 23-28: Data Delivery & Final Processing
+    Note over EDC,Handler: Data Delivery & State Finalization
+    EDC->>+API: POST /data/receive<br/>{transferId: 123, data: {...}}
     API->>+Kafka: Publish (TRANSFER_COMPLETED)
     Kafka-->>-API: Published
-    API-->>-EDC: 200 OK
 
     Kafka->>+Handler: Consume (TRANSFER_COMPLETED)
     Handler->>+DB: Update (Status: COMPLETED)
@@ -210,18 +215,11 @@ sequenceDiagram
     Handler->>+Audit: Log Event (TRANSFER_COMPLETED)
     Audit->>DB: Insert Audit Log
     Audit-->>-Handler: Logged
-    Handler->>Redis: Invalidate Cache
     Handler-->>-Kafka: Acknowledged
 
-    %% Step 26: BMW Polls for Status
-    Note over BMW,DB: Status Polling
-    BMW->>+API: GET /api/v1/transfers/123
-    API->>Redis: Check Cache
-    Redis-->>API: Cache Miss
-    API->>+DB: Query Transfer (ID: 123)
-    DB-->>-API: {id: 123, status: "COMPLETED"}
-    API->>Redis: Update Cache
-    API-->>-BMW: 200 OK<br/>{status: "COMPLETED"}
+    API->>+DB: Store Data
+    DB-->>-API: Stored
+    API-->>-EDC: 200 OK
 ```
 
 ### Flow Summary
@@ -236,8 +234,11 @@ sequenceDiagram
 8. **Event Processing** - Event handler consumes event and updates status
 9. **Transfer Initiation** - Transfer process starts with EDC
 10. **Progress Updates** - EDC sends progress callbacks via Kafka
-11. **Completion** - Final callback marks transfer as COMPLETED
-12. **Audit Trail** - All state transitions logged in audit table
+11. **Completion Notification** - EDC sends `/callback/transfers` with COMPLETED status (orchestrator just logs)
+12. **Data Delivery** - EDC sends actual data to orchestrator via `/data/receive` callback
+13. **State Finalization** - Orchestrator publishes TRANSFER_COMPLETED event to Kafka
+14. **Kafka Processing** - Event handler updates status to COMPLETED and logs audit trail
+15. **Data Storage** - Orchestrator stores received data to PostgreSQL
 
 ---
 

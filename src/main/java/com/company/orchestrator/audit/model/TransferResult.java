@@ -13,16 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransferResult {
-
-    /** Whether transfer was successful */
     private boolean success;
-
-    /** Number of bytes transferred */
     private Long bytesTransferred;
-
-    /** Error message if failed */
     private String errorMessage;
-
-    /** Error code if failed */
     private String errorCode;
 }

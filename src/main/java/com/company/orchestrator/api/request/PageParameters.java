@@ -1,5 +1,6 @@
 package com.company.orchestrator.api.request;
 
+import com.company.orchestrator.api.validator.PageParametersValidator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,12 @@ import lombok.Setter;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+/**
+ * PageParameters to be used for pagination in API requests
+ * <p>
+ * Validated by {@link PageParametersValidator}
+ * </p>
+ */
 @Getter
 @Setter
 @NoArgsConstructor

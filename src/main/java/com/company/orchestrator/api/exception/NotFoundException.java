@@ -2,6 +2,9 @@ package com.company.orchestrator.api.exception;
 
 import java.io.Serial;
 
+/**
+ * Exception thrown when a requested resource is not found
+ */
 public class NotFoundException extends RuntimeException {
     @Serial
     private static final long serialVersionUID = 7682196307167034327L;

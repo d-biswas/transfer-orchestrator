@@ -6,6 +6,9 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 
+/**
+ * Field validation error details
+ */
 @Getter
 @Setter
 public class FieldValidationError extends ApiError {

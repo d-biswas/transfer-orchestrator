@@ -7,6 +7,9 @@ import org.springframework.http.HttpStatus;
 import java.io.Serial;
 import java.util.Map;
 
+/**
+ * Field validation exception
+ */
 @Getter
 public class FieldValidationException extends ApiException {
     @Serial

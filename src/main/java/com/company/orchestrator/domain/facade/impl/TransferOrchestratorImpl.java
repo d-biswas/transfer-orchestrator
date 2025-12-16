@@ -3,6 +3,7 @@ package com.company.orchestrator.domain.facade.impl;
 import com.company.orchestrator.api.exception.NotFoundException;
 import com.company.orchestrator.api.request.DateParameters;
 import com.company.orchestrator.api.request.TransferInitiateDto;
+import com.company.orchestrator.api.response.PolicyEvaluationResponse;
 import com.company.orchestrator.api.response.TransferDto;
 import com.company.orchestrator.api.response.TransferResponseDto;
 import com.company.orchestrator.audit.model.AuditEvent;
@@ -255,6 +256,18 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
                 .to(DateUtils.toEndOfDayUtc(parameters.getToDate()))
                 .build();
         return auditService.generateComplianceReport(dateRange);
+    }
+
+    /**
+     * Evaluates policies for a transfer request without initiating the transfer
+     */
+    @Override
+    public PolicyEvaluationResponse evaluatePolicies(TransferInitiateDto request) {
+        PolicyEvaluationResult result = policyService.evaluatePolicies(request);
+        return PolicyEvaluationResponse.builder()
+                .allowed(result.allowed())
+                .violationReason(result.violationReason())
+                .build();
     }
 
     /**

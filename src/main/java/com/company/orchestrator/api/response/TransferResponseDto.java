@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Transfer response DTO
+ */
 @Getter
 @Setter
 @NoArgsConstructor

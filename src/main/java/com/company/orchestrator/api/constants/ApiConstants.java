@@ -9,9 +9,7 @@ public final class ApiConstants {
     public static class Path {
         public static final String TRANSFERS = "/transfers";
 
-        public static final String INITIATE_TRANSFER = TRANSFERS;
         public static final String TRANSFER_BY_ID = TRANSFERS + "/{" + Variable.ID + "}";
-
         public static final String GET_AUDIT_LOGS = TRANSFERS + "/{" + Variable.ID + "}/audit";
         public static final String GET_TRANSFER_ANALYTICS = "/analytics/transfers";
         public static final String POLICY_EVALUATION = "/policies/evaluate";

@@ -8,6 +8,10 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
+/**
+ * Paged response content wrapper
+ * @param <T>
+ */
 @Getter
 @Setter
 @NoArgsConstructor

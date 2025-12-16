@@ -17,28 +17,12 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuditEvent {
-
-    /** Unique audit log ID */
     private Long id;
-
-    /** Associated transfer ID */
     private Long transferId;
-
-    /** Associated consumer ID */
     private String consumerId;
-
-    /** Type of audit event */
     private AuditEventType eventType;
-
-    /** Actor who triggered the event */
     private String actor;
-
-    /** Event message */
     private String message;
-
-    /** Additional metadata */
     private Map<String, Object> metadata;
-
-    /** Timestamp when event occurred */
     private Instant createdAt;
 }

@@ -7,10 +7,7 @@ import com.company.orchestrator.api.exception.ApiException;
 import com.company.orchestrator.api.request.DateParameters;
 import com.company.orchestrator.api.request.PageParameters;
 import com.company.orchestrator.api.request.TransferInitiateDto;
-import com.company.orchestrator.api.response.PagedResponseContent;
-import com.company.orchestrator.api.response.ResponseContent;
-import com.company.orchestrator.api.response.TransferDto;
-import com.company.orchestrator.api.response.TransferResponseDto;
+import com.company.orchestrator.api.response.*;
 import com.company.orchestrator.api.validator.DateParametersValidator;
 import com.company.orchestrator.api.validator.PageParametersValidator;
 import com.company.orchestrator.api.validator.TransferInitiateRequestValidator;
@@ -56,14 +53,14 @@ public class TransferOrchestratorController {
             )
     })
     @PostMapping(ApiConstants.Path.TRANSFERS)
-    public ResponseEntity<TransferResponseDto> initiateTransfer(@RequestBody TransferInitiateDto requestDto,
+    public ResponseEntity<ResponseContent<TransferResponseDto>> initiateTransfer(@RequestBody TransferInitiateDto requestDto,
                                                                 BindingResult result) {
         transferInitiateRequestValidator.validate(requestDto, result);
         if (result.hasErrors()) {
             throw ApiException.fieldValidationError(result.getFieldErrors());
         }
         TransferResponseDto response = transferOrchestrator.initiateTransfer(requestDto);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ResponseContent<>(response));
     }
 
     @Operation(summary = "Get transfer status by ID")
@@ -78,9 +75,9 @@ public class TransferOrchestratorController {
             )
     })
     @GetMapping(ApiConstants.Path.TRANSFER_BY_ID)
-    public ResponseEntity<TransferStatus> getTransferStatus(@PathVariable Long id) {
+    public ResponseEntity<ResponseContent<TransferStatus>> getTransferStatus(@PathVariable Long id) {
         TransferStatus response = transferOrchestrator.getTransferStatus(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ResponseContent<>(response));
     }
 
     @Operation(summary = "Cancel a transfer")
@@ -114,7 +111,8 @@ public class TransferOrchestratorController {
             )
     })
     @GetMapping(ApiConstants.Path.TRANSFERS)
-    public ResponseEntity<PagedResponseContent<TransferDto>> getTransfers(@ModelAttribute PageParameters pageParameters, BindingResult result) {
+    public ResponseEntity<PagedResponseContent<TransferDto>> getTransfers(@ModelAttribute PageParameters pageParameters,
+                                                                          BindingResult result) {
         pageParametersValidator.validate(pageParameters, result);
         if (result.hasErrors()) {
             throw ApiException.fieldValidationError(result.getFieldErrors());
@@ -157,5 +155,28 @@ public class TransferOrchestratorController {
         }
         ComplianceReport complianceReport = transferOrchestrator.getTransferAnalytics(dateParameters);
         return ResponseEntity.ok(new ResponseContent<>(complianceReport));
+    }
+
+    @Operation(summary = "Evaluate policies without initiating a transfer")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Transfer request evaluated successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validation error",
+                    content = @Content(schema = @Schema(implementation = FieldValidationError.class))
+            )
+    })
+    @PostMapping(ApiConstants.Path.POLICY_EVALUATION)
+    public ResponseEntity<ResponseContent<PolicyEvaluationResponse>> evaluatePolicies(@RequestBody TransferInitiateDto request,
+                                                                                      BindingResult result) {
+        transferInitiateRequestValidator.validate(request, result);
+        if (result.hasErrors()) {
+            throw ApiException.fieldValidationError(result.getFieldErrors());
+        }
+        PolicyEvaluationResponse evaluationResponse = transferOrchestrator.evaluatePolicies(request);
+        return ResponseEntity.ok(new ResponseContent<>(evaluationResponse));
     }
 }
