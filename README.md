@@ -154,7 +154,7 @@ curl http://localhost:8080/actuator/metrics/http.server.requests
 curl http://localhost:8080/actuator/prometheus
 ```
 
-See [OBSERVABILITY.md](OBSERVABILITY.md) for detailed monitoring setup.
+See [observability.md](observability.md) for detailed monitoring setup.
 
 ---
 
@@ -211,12 +211,14 @@ com.company.orchestrator
 
 ## Additional Documentation
 
-- [OBSERVABILITY.md](OBSERVABILITY.md) - Monitoring & metrics
+- [architechture.md](observability.md) - System architecture & design
+- [design-decisions.md](design-decisions.md) - Key design choices
+- [observability.md](observability.md) - Monitoring & metrics
 
 ---
 
 ## License
 
-[Add your license here]
+Personal project — use for fun and learning, but **don’t try this at home!**
 
 ---
