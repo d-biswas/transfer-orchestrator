@@ -56,4 +56,9 @@ public class EdcProperties {
      * Thread pool size for scheduled callbacks
      */
     private int schedulerThreadPoolSize;
+
+    /**
+     * EDC Dataspace Protocol endpoint
+     */
+    private String providerUrl;
 }

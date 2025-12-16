@@ -10,25 +10,23 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public enum AuditEventType {
     // --- Request Lifecycle ---
-    TRANSFER_REQUESTED(1, "TRANSFER_REQUESTED"),
+    TRANSFER_REQUESTED(1, "Transfer requested"),
 
     // --- Policy Evaluation ---
-    POLICY_EVALUATION_STARTED(10, "POLICY_EVALUATION_STARTED"),
-    POLICY_EVALUATION_PASSED(11, "POLICY_EVALUATION_PASSED"),
-    POLICY_EVALUATION_FAILED(12, "POLICY_EVALUATION_FAILED"),
+    POLICY_EVALUATION_STARTED(10, "Policy evaluation started"),
+    POLICY_APPROVED(11, "Policy approved"),
+    POLICY_DENIED(12, "Policy denied"),
 
     // --- Contract Negotiation ---
-    CONTRACT_NEGOTIATION_STARTED(20, "CONTRACT_NEGOTIATION_STARTED"),
-    CONTRACT_NEGOTIATION_COMPLETED(21, "CONTRACT_NEGOTIATION_COMPLETED"),
-    CONTRACT_NEGOTIATION_FAILED(22, "CONTRACT_NEGOTIATION_FAILED"),
-
-    STATE_CHANGED(30, "STATE_CHANGED"),
+    CONTRACT_NEGOTIATION_STARTED(20, "Contract negotiation started"),
+    CONTRACT_NEGOTIATED(21, "Contract negotiation completed"),
+    CONTRACT_NEGOTIATION_FAILED(22, "Contract negotiation failed"),
 
     // --- Transfer Process ---
-    TRANSFER_PROCESS_STARTED(40, "TRANSFER_PROCESS_STARTED"),
-    TRANSFER_PROCESS_COMPLETED(41, "TRANSFER_PROCESS_COMPLETED"),
-    TRANSFER_PROCESS_FAILED(42, "TRANSFER_PROCESS_FAILED"),
-    TRANSFER_PROCESS_CANCELLED(43, "TRANSFER_PROCESS_CANCELLED");
+    TRANSFER_STARTED(30, "Transfer in progress"),
+    TRANSFER_COMPLETED(31, "Transfer completed successfully"),
+    TRANSFER_FAILED(32, "Transfer failed"),
+    TRANSFER_CANCELLED(33, "Transfer cancelled");
 
     private final Integer id;
     private final String name;

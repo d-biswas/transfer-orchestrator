@@ -7,7 +7,6 @@ import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -29,7 +28,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2
 @Service
-@Primary
 @RequiredArgsConstructor
 public class EdcConnectorClientImpl implements EdcConnectorClient {
 
@@ -71,6 +69,10 @@ public class EdcConnectorClientImpl implements EdcConnectorClient {
 
         log.info("Starting contract negotiation: negotiationId={}, assetId={}, providerId={}",
                 negotiationId, offer.getAssetId(), offer.getProviderId());
+        String assetId = offer.getAssetId();
+        if (assetId.startsWith("unauthorized")) {
+            return ContractNegotiationResult.failure(negotiationId, null, "Unauthorized asset");
+        }
 
         // Store negotiation state
         NegotiationState state = new NegotiationState();

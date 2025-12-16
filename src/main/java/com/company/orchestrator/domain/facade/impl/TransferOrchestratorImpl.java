@@ -17,6 +17,7 @@ import com.company.orchestrator.infrastructure.edc.model.ContractNegotiationResu
 import com.company.orchestrator.infrastructure.edc.model.ContractOffer;
 import com.company.orchestrator.infrastructure.events.model.TransferFailedErrorCode;
 import com.company.orchestrator.infrastructure.persistence.entity.TransferRequestEntity;
+import com.company.orchestrator.infrastructure.props.EdcProperties;
 import com.company.orchestrator.policy.model.PolicyEvaluationResult;
 import com.company.orchestrator.policy.service.PolicyService;
 import com.company.orchestrator.utils.DateUtils;
@@ -45,6 +46,7 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
     private final PolicyService policyService;
     private final EdcConnectorClient edcClient;
     private final AuditService auditService;
+    private final EdcProperties edcProperties;
 
     /**
      * Initiates a data transfer with orchestration
@@ -85,6 +87,9 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
             transferStateService.updateState(transferId, TransferStatus.POLICY_EVALUATION, SYSTEM_ACTOR);
             log.info("Evaluating policies for transferId={}", transferId);
 
+            log.info("Logging state transition of transferId={} from {} to {}", transferId, TransferStatus.REQUESTED, TransferStatus.POLICY_EVALUATION);
+            auditService.logStateTransition(transferId, request.getConsumerId(), TransferStatus.REQUESTED, TransferStatus.POLICY_EVALUATION);
+
             PolicyEvaluationResult policyResult = policyService.evaluatePolicies(request);
             auditService.logPolicyEvaluation(transferId, request.getConsumerId(), policyResult);
 
@@ -108,7 +113,7 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
             // EDC will send callbacks to /api/v1/transfers/callback with status updates
             ContractNegotiationResult negotiationResult = edcClient.negotiateContract(contractOffer);
 
-            if (negotiationResult == null) {
+            if (!negotiationResult.isSuccessful()) {
                 handleTransferFailed(transferId, request.getConsumerId(), "Failed to initiate contract negotiation",
                         TransferFailedErrorCode.EDC_NEGOTIATION_INITIATION_ERROR);
                 result.setStatus(TransferStatus.FAILED);
@@ -257,8 +262,6 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
      */
     private void handlePolicyApproved(Long transferId, String consumerId, PolicyEvaluationResult policyResult) {
         transferStateService.updateState(transferId, TransferStatus.APPROVED, SYSTEM_ACTOR);
-        auditService.logStateTransition(transferId, consumerId, TransferStatus.POLICY_EVALUATION, TransferStatus.APPROVED);
-
         log.info("Policy approved: transferId={}, policyType={}", transferId, policyResult.policy().getClass().getSimpleName());
     }
 
@@ -267,8 +270,6 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
      */
     private void handlePolicyDenied(Long transferId, String consumerId, PolicyEvaluationResult policyResult) {
         transferStateService.updateState(transferId, TransferStatus.DENIED, SYSTEM_ACTOR);
-        auditService.logStateTransition(transferId, consumerId, TransferStatus.POLICY_EVALUATION, TransferStatus.DENIED);
-
         log.warn("Policy denied: transferId={}, policyType={}, reason={}",
                 transferId, policyResult.policy().getClass().getSimpleName(), policyResult.violationReason());
     }
@@ -293,12 +294,13 @@ public class TransferOrchestratorImpl implements TransferOrchestrator {
      * consumerCallbackUrl: Where provider EDC notifies about negotiation status
      */
     private ContractOffer buildContractOffer(TransferInitiateDto request, TransferRequestEntity transfer) {
+        String callbackUrl = edcProperties.getCallbackBaseUrl() + "/api/v1/transfers/callback";
         return ContractOffer.builder()
                 .providerId(request.getProviderId())
                 .assetId(request.getAssetId())
                 .providerUrl("http://provider-edc:8282/protocol")
                 .offerId("offer-" + transfer.getId())
-                .consumerCallbackUrl("http://transfer-orchestrator:8080/api/v1/transfers/callback")
+                .consumerCallbackUrl(callbackUrl)
                 .build();
     }
 

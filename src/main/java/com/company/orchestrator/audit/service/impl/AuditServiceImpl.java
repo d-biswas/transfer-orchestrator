@@ -72,10 +72,7 @@ public class AuditServiceImpl implements AuditService {
             metadata.put("violationReason", result.violationReason());
         }
 
-        AuditEventType eventType = result.allowed() ?
-                AuditEventType.POLICY_EVALUATION_PASSED :
-                AuditEventType.POLICY_EVALUATION_FAILED;
-
+        AuditEventType eventType = result.allowed() ? AuditEventType.POLICY_APPROVED : AuditEventType.POLICY_DENIED;
         AuditLogEntity auditLog = AuditLogEntity.builder()
                 .transferId(transferId)
                 .consumerId(consumerId)
@@ -93,24 +90,23 @@ public class AuditServiceImpl implements AuditService {
 
     @Override
     @Transactional
-    public void logStateTransition(Long transferId, String consumerId, TransferStatus from, TransferStatus to) {
-        log.info("Logging state transition for transfer: {} from {} to {}", transferId, from, to);
+    public void logStateTransition(Long transferId, String consumerId, TransferStatus fromState, TransferStatus toState) {
+        log.info("Logging state transition for transfer: {} from {} to {}", transferId, fromState, toState);
 
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put("fromState", from.getName());
-        metadata.put("toState", to.getName());
-
-        AuditLogEntity auditLog = AuditLogEntity.builder()
-                .transferId(transferId)
-                .consumerId(consumerId)
-                .eventType(AuditEventType.STATE_CHANGED)
-                .actor(SYSTEM_ACTOR)
-                .message(String.format("State changed from %s to %s", from.getName(), to.getName()))
-                .metadata(metadata)
-                .createdAt(Instant.now())
-                .build();
-
-        auditLogRepository.save(auditLog);
+        AuditEventType eventType = mapStatusTransitionToEvent(fromState, toState);
+        if (eventType != null) {
+            AuditLogEntity log = AuditLogEntity.builder()
+                    .transferId(transferId)
+                    .consumerId(consumerId)
+                    .eventType(eventType)
+                    .actor(SYSTEM_ACTOR)
+                    .message(String.format("Transitioned from %s to %s",
+                            fromState != null ? fromState.getName() : "NULL",
+                            toState.getName()))
+                    .createdAt(Instant.now())
+                    .build();
+            auditLogRepository.save(log);
+        }
     }
 
     @Override
@@ -128,10 +124,7 @@ public class AuditServiceImpl implements AuditService {
             metadata.put("errorCode", result.getErrorCode());
         }
 
-        AuditEventType eventType = result.isSuccess() ?
-                AuditEventType.TRANSFER_PROCESS_COMPLETED :
-                AuditEventType.TRANSFER_PROCESS_FAILED;
-
+        AuditEventType eventType = result.isSuccess() ? AuditEventType.TRANSFER_COMPLETED : AuditEventType.TRANSFER_FAILED;
         AuditLogEntity auditLog = AuditLogEntity.builder()
                 .transferId(transferId)
                 .consumerId(consumerId)
@@ -164,9 +157,31 @@ public class AuditServiceImpl implements AuditService {
         return auditLogRepository.generateComplianceReport(dateRange);
     }
 
-    /**
-     * Convert AuditLogEntity to AuditEvent model
-     */
+    private AuditEventType mapStatusTransitionToEvent(TransferStatus from, TransferStatus to) {
+        if (from == null && to == TransferStatus.REQUESTED) {
+            return AuditEventType.TRANSFER_REQUESTED;
+        } else if (from == TransferStatus.REQUESTED && to == TransferStatus.POLICY_EVALUATION) {
+            return AuditEventType.POLICY_EVALUATION_STARTED;
+        } else if (from == TransferStatus.POLICY_EVALUATION && to == TransferStatus.APPROVED) {
+            return AuditEventType.POLICY_APPROVED;
+        } else if (from == TransferStatus.POLICY_EVALUATION && to == TransferStatus.DENIED) {
+            return AuditEventType.POLICY_DENIED;
+        } else if (from == TransferStatus.APPROVED && to == TransferStatus.CONTRACT_NEGOTIATION) {
+            return AuditEventType.CONTRACT_NEGOTIATION_STARTED;
+        } else if (from == TransferStatus.CONTRACT_NEGOTIATION && to == TransferStatus.NEGOTIATED) {
+            return AuditEventType.CONTRACT_NEGOTIATED;
+        } else if (from == TransferStatus.NEGOTIATED && to == TransferStatus.TRANSFER_IN_PROGRESS) {
+            return AuditEventType.TRANSFER_STARTED;
+        } else if (from == TransferStatus.TRANSFER_IN_PROGRESS && to == TransferStatus.COMPLETED) {
+            return AuditEventType.TRANSFER_COMPLETED;
+        } else if (from == TransferStatus.TRANSFER_IN_PROGRESS && to == TransferStatus.FAILED) {
+            return AuditEventType.TRANSFER_FAILED;
+        } else if (to == TransferStatus.CANCELLED) {
+            return AuditEventType.TRANSFER_CANCELLED;
+        }
+        return null;
+    }
+
     private AuditEvent toAuditEvent(AuditLogEntity entity) {
         return AuditEvent.builder()
                 .id(entity.getId())

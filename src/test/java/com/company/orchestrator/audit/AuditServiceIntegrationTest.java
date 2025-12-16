@@ -12,7 +12,6 @@ import com.company.orchestrator.infrastructure.persistence.repository.AuditLogRe
 import com.company.orchestrator.infrastructure.persistence.repository.TransferRequestRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -95,7 +94,7 @@ public class AuditServiceIntegrationTest {
         auditLogRepository.save(AuditLogEntity.builder()
                 .transferId(transfer1.getId())
                 .consumerId("consumer-01")
-                .eventType(AuditEventType.TRANSFER_PROCESS_COMPLETED)
+                .eventType(AuditEventType.TRANSFER_COMPLETED)
                 .createdAt(Instant.now())
                 .metadata(Map.of())
                 .actor("SYSTEM")
@@ -123,7 +122,7 @@ public class AuditServiceIntegrationTest {
         auditLogRepository.save(AuditLogEntity.builder()
                 .transferId(transfer2.getId())
                 .consumerId("consumer-02")
-                .eventType(AuditEventType.POLICY_EVALUATION_FAILED)
+                .eventType(AuditEventType.POLICY_DENIED)
                 .createdAt(Instant.now())
                 .metadata(Map.of())
                 .actor("SYSTEM")

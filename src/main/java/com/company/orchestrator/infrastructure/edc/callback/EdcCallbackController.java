@@ -10,6 +10,7 @@ import com.company.orchestrator.infrastructure.edc.model.TransferRequest;
 import com.company.orchestrator.infrastructure.events.model.TransferFailedErrorCode;
 import com.company.orchestrator.infrastructure.events.publisher.TransferEventPublisher;
 import com.company.orchestrator.infrastructure.persistence.entity.TransferRequestEntity;
+import com.company.orchestrator.infrastructure.props.EdcProperties;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -37,18 +38,7 @@ public class EdcCallbackController {
     private final TransferStateService transferStateService;
     private final TransferEventPublisher eventPublisher;
     private final EdcConnectorClient edcClient;
-
-    // Provider EDC URL - configurable via environment or defaults for mock/docker
-    private final String providerEdcUrl = System.getenv().getOrDefault(
-            "PROVIDER_EDC_URL",
-            "http://provider-edc:8282/protocol"
-    );
-
-    // Orchestrator callback base URL - configurable for localhost vs docker
-    private final String orchestratorBaseUrl = System.getenv().getOrDefault(
-            "ORCHESTRATOR_CALLBACK_BASE_URL",
-            "http://localhost:8080/"  // Default to localhost for mock EDC
-    );
+    private final EdcProperties edcProperties;
 
     /**
      * Endpoint to receive transferred data from provider EDC data plane
@@ -311,13 +301,13 @@ public class EdcCallbackController {
         }
 
         log.debug("Building transfer request: transferId={}, assetId={}, providerId={}, providerUrl={}",
-                transferId, transferEntity.getAssetId(), transferEntity.getProviderId(), providerEdcUrl);
+                transferId, transferEntity.getAssetId(), transferEntity.getProviderId(), edcProperties.getProviderUrl());
 
         return TransferRequest.builder()
                 .assetId(transferEntity.getAssetId())  // Dynamic asset ID from entity
-                .providerUrl(providerEdcUrl)  // Provider's DSP endpoint (configurable)
+                .providerUrl(edcProperties.getProviderUrl())  // Provider's DSP endpoint
                 .destinationType("HttpProxy")
-                .destinationUrl(orchestratorBaseUrl + "/api/v1/transfers/data/receive?transferId=" + transferId)
+                .destinationUrl(edcProperties.getCallbackBaseUrl() + "/api/v1/transfers/data/receive?transferId=" + transferId)
                 .protocol("dataspace-protocol-http")
                 .managedTransfer(true)
                 .build();

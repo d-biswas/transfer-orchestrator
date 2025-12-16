@@ -11,4 +11,6 @@ public interface AuditLogRepository extends JpaRepository<AuditLogEntity, Long>,
 
     List<AuditLogEntity> findByTransferIdOrderByCreatedAtDesc(Long transferId);
 
+    List<AuditLogEntity> findAllByTransferId(Long transferId);
+
 }

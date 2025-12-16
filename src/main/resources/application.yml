@@ -152,8 +152,7 @@ edc:
 
     # Thread pool size for scheduled callbacks
     scheduler-thread-pool-size: "${MOCK_EDC_SCHEDULER_POOL_SIZE:5}"
-
-management:
+    provider-url: "${MOCK_EDC_URL:http://provider-edc:8182/api/v1/dsp}"
   endpoints:
     web:
       exposure:

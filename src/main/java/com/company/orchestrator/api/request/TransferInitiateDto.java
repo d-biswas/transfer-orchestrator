@@ -25,9 +25,6 @@ public class TransferInitiateDto {
     @Schema(description = "Provider participant ID", example = "provider-participant", requiredMode = Schema.RequiredMode.REQUIRED)
     private String providerId;
 
-    @Schema(description = "Provider DSP endpoint", example = "http://provider-edc:7172/api/v1/dsp", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String providerUrl;
-
     @Schema(description = "Consumer participant ID", example = "consumer-participant", requiredMode = Schema.RequiredMode.REQUIRED)
     private String consumerId;
 

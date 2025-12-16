@@ -76,13 +76,22 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter'
     testImplementation 'net.bytebuddy:byte-buddy-agent:1.17.7'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
-        exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j2-impl'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
     }
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
     testRuntimeOnly 'com.h2database:h2'
+
+    // Kafka testing
+    testImplementation('org.springframework.kafka:spring-kafka-test') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
+
+    // Await for async testing
+    testImplementation 'org.awaitility:awaitility:4.2.0'
 
 }
 
@@ -99,9 +108,7 @@ tasks.withType(JavaCompile).configureEach {
     targetCompatibility = JavaVersion.VERSION_25
 }
 
-// --------------------------
-// Docker build task
-// --------------------------
+
 tasks.register('dockerBuildImage', Exec) {
     group = 'docker'
     description = 'Build Docker image for the application'

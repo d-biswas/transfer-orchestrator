@@ -1,0 +1,117 @@
+server:
+  port: 0  # Random port for tests
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    default-schema: orchestrator
+    create-schemas: true
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+    hibernate:
+      ddl-auto: none  # Let Flyway handle schema
+    properties:
+      hibernate:
+        globally_quoted_identifiers: false
+        format_sql: false
+
+  # Disable Redis for tests
+  cache:
+    type: none
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+  # Embedded Kafka configuration for tests
+  kafka:
+    admin:
+      fail-fast: false
+      auto-create: true
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
+    producer:
+      acks: all
+      retries: 3
+      enable-idempotence: true
+    consumer:
+      group-id: orchestrator-test-group
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: com.company.orchestrator
+        enable.auto.commit: false
+        allow.auto.create.topics: true
+      retry:
+        max-attempts: 3
+        backoff-delay: 100
+        backoff-multiplier: 1.5
+        max-interval: 1000
+    listener:
+      concurrency: 1
+      ack-mode: manual
+    topics:
+      transfer-requested:
+        name: test.transfer.requested
+      policy-approved:
+        name: test.policy.approved
+      policy-rejected:
+        name: test.policy.rejected
+      negotiation-started:
+        name: test.negotiation.started
+      contact-negotiated:
+        name: test.negotiation.completed
+      transfer-in-progress:
+        name: test.transfer.in-progress
+      transfer-completed:
+        name: test.transfer.completed
+      transfer-failed:
+        name: test.transfer.failed
+      transfer-terminated:
+        name: test.transfer.terminated
+      dlq:
+        name: test.orchestrator-dlq
+    topic-config:
+      partitions: 1
+      replication-factor: 1
+
+# Mock EDC Configuration for tests (with faster delays)
+edc:
+  mock:
+    callback-base-url: http://localhost:8080
+
+    # Contract negotiation delays (give time for Kafka processing)
+    negotiation-requested-to-offered-delay-ms: 500
+    negotiation-offered-to-agreed-delay-ms: 500
+    negotiation-agreed-to-finalized-delay-ms: 500
+
+    # Transfer process delays (give time for Kafka processing)
+    transfer-initial-to-provisioning-delay-ms: 1000
+    transfer-provisioning-to-started-delay-ms: 1000
+    transfer-started-to-completed-delay-ms: 1000
+
+    # No failures in tests by default
+    failure-rate: 0.0
+
+    # Small thread pool for tests
+    scheduler-thread-pool-size: 2
+    provider-url: http://provider-edc:8182/api/v1/dsp
+
+logging:
+  level:
+    com.company.orchestrator: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    org.hibernate: WARN

@@ -30,21 +30,21 @@ public class AuditLogRepositoryImpl implements AuditLogRepositoryCustom {
 
         // Successful transfers = distinct transferId with TRANSFER_PROCESS_COMPLETED
         NumberExpression<Long> successfulTransfers = new CaseBuilder()
-                .when(audit.eventType.eq(AuditEventType.TRANSFER_PROCESS_COMPLETED))
+                .when(audit.eventType.eq(AuditEventType.TRANSFER_COMPLETED))
                 .then(audit.transferId)
                 .otherwise((Long) null)
                 .countDistinct();
 
         // Failed transfers = distinct transferId with TRANSFER_PROCESS_FAILED
         NumberExpression<Long> failedTransfers = new CaseBuilder()
-                .when(audit.eventType.eq(AuditEventType.TRANSFER_PROCESS_FAILED))
+                .when(audit.eventType.eq(AuditEventType.TRANSFER_FAILED))
                 .then(audit.transferId)
                 .otherwise((Long) null)
                 .countDistinct();
 
         // Denied transfers = distinct transferId with POLICY_EVALUATION_FAILED
         NumberExpression<Long> deniedTransfers = new CaseBuilder()
-                .when(audit.eventType.eq(AuditEventType.POLICY_EVALUATION_FAILED))
+                .when(audit.eventType.eq(AuditEventType.POLICY_DENIED))
                 .then(audit.transferId)
                 .otherwise((Long) null)
                 .countDistinct();

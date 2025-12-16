@@ -72,7 +72,7 @@ public class AuditServiceUnitTest {
         verify(auditLogRepository).save(captor.capture());
 
         AuditLogEntity saved = captor.getValue();
-        assertEquals(AuditEventType.POLICY_EVALUATION_PASSED, saved.getEventType());
+        assertEquals(AuditEventType.POLICY_APPROVED, saved.getEventType());
         assertEquals(true, saved.getMetadata().get("allowed"));
         assertTrue(saved.getMessage().contains("passed"));
     }
@@ -88,7 +88,7 @@ public class AuditServiceUnitTest {
         verify(auditLogRepository).save(captor.capture());
 
         AuditLogEntity saved = captor.getValue();
-        assertEquals(AuditEventType.POLICY_EVALUATION_FAILED, saved.getEventType());
+        assertEquals(AuditEventType.POLICY_DENIED, saved.getEventType());
         assertEquals(false, saved.getMetadata().get("allowed"));
         assertEquals("Rate limit exceeded", saved.getMetadata().get("violationReason"));
         assertTrue(saved.getMessage().contains("failed"));
@@ -102,10 +102,8 @@ public class AuditServiceUnitTest {
         verify(auditLogRepository).save(captor.capture());
 
         AuditLogEntity saved = captor.getValue();
-        assertEquals(AuditEventType.STATE_CHANGED, saved.getEventType());
-        assertEquals("REQUESTED", saved.getMetadata().get("fromState"));
-        assertEquals("POLICY_EVALUATION", saved.getMetadata().get("toState"));
-        assertTrue(saved.getMessage().contains("State changed"));
+        assertEquals(AuditEventType.POLICY_EVALUATION_STARTED, saved.getEventType());
+        assertTrue(saved.getMessage().contains("Transitioned from"));
     }
 
     @Test
@@ -121,7 +119,7 @@ public class AuditServiceUnitTest {
         verify(auditLogRepository).save(captor.capture());
 
         AuditLogEntity saved = captor.getValue();
-        assertEquals(AuditEventType.TRANSFER_PROCESS_COMPLETED, saved.getEventType());
+        assertEquals(AuditEventType.TRANSFER_COMPLETED, saved.getEventType());
         assertEquals(true, saved.getMetadata().get("success"));
         assertEquals(1024L, saved.getMetadata().get("bytesTransferred"));
     }
@@ -140,7 +138,7 @@ public class AuditServiceUnitTest {
         verify(auditLogRepository).save(captor.capture());
 
         AuditLogEntity saved = captor.getValue();
-        assertEquals(AuditEventType.TRANSFER_PROCESS_FAILED, saved.getEventType());
+        assertEquals(AuditEventType.TRANSFER_FAILED, saved.getEventType());
         assertEquals(false, saved.getMetadata().get("success"));
         assertEquals("File transfer failed", saved.getMetadata().get("errorMessage"));
         assertEquals("TRANSFER_TIMEOUT", saved.getMetadata().get("errorCode"));
