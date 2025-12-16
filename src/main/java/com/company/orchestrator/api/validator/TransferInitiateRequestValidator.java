@@ -21,12 +21,11 @@ public class TransferInitiateRequestValidator implements Validator {
     private static final String FIELD_ASSET_ID = "assetId";
     private static final String FIELD_PROVIDER_ID = "providerId";
     private static final String FIELD_CONSUMER_ID = "consumerId";
-    private static final String FIELD_PROVIDER_URL = "providerUrl";
     private static final String FIELD_DATA_TYPE = "dataType";
     private static final String FIELD_CONSUMER_REGION = "consumerRegion";
 
     private static final Set<String> VALID_REGIONS = Set.of(
-            "EU", "US", "ASIA", "APAC", "EMEA", "LATAM", "MEA"
+            "EU", "DE", "FR"
     );
 
     private static final Set<String> VALID_CERTIFICATIONS = Set.of(
@@ -64,9 +63,6 @@ public class TransferInitiateRequestValidator implements Validator {
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, FIELD_PROVIDER_ID, "field.required",
                 "Provider ID is required");
-
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, FIELD_PROVIDER_URL, "field.required",
-                "Provider URL is required");
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, FIELD_CONSUMER_ID, "field.required",
                 "Consumer ID is required");

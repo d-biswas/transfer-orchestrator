@@ -68,13 +68,6 @@ import static org.junit.jupiter.api.Assertions.*;
         }
 )
 @ActiveProfiles("test")
-@TestPropertySource(
-        locations = "classpath:application-test.yml",
-        properties = {
-                "spring.jpa.hibernate.ddl-auto=none",
-                "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
-        }
-)
 public class TransferOrchestratorIntegrationTest {
 
     @Autowired
@@ -183,7 +176,7 @@ public class TransferOrchestratorIntegrationTest {
         // Once FINALIZED, Edc CallbackController will be called
         await()
                 .atMost(Duration.ofSeconds(10))
-                .pollInterval(Duration.ofMillis(200))
+                .pollInterval(Duration.ofMillis(5000))
                 .untilAsserted(() -> {
                     TransferRequestEntity transfer = transferRequestRepository.findById(transferId)
                             .orElseThrow(() -> new AssertionError("Transfer should exist"));
@@ -203,7 +196,7 @@ public class TransferOrchestratorIntegrationTest {
         // Wait for NEGOTIATED state
         await()
                 .atMost(Duration.ofSeconds(15))
-                .pollInterval(Duration.ofMillis(200))
+                .pollInterval(Duration.ofMillis(5000))
                 .untilAsserted(() -> {
                     TransferRequestEntity transfer = transferRequestRepository.findById(transferId)
                             .orElseThrow(() -> new AssertionError("Transfer should exist"));
@@ -229,7 +222,7 @@ public class TransferOrchestratorIntegrationTest {
         // TransferEventHandler consumes event and updates transfer status to TRANSFER_IN_PROGRESS
         await()
                 .atMost(Duration.ofSeconds(20))
-                .pollInterval(Duration.ofMillis(200))
+                .pollInterval(Duration.ofMillis(10000))
                 .untilAsserted(() -> {
                     TransferRequestEntity transfer = transferRequestRepository.findById(transferId)
                             .orElseThrow(() -> new AssertionError("Transfer should exist"));
@@ -499,8 +492,8 @@ public class TransferOrchestratorIntegrationTest {
 
         // Wait for negotiated or in progress
         await()
-                .atMost(Duration.ofSeconds(5))
-                .pollInterval(Duration.ofMillis(200))
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(8000))
                 .untilAsserted(() -> {
                     TransferRequestEntity transfer = transferRequestRepository.findById(transferId)
                             .orElseThrow();

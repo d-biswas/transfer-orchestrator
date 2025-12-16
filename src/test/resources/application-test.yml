@@ -93,14 +93,14 @@ edc:
     callback-base-url: http://localhost:8080
 
     # Contract negotiation delays (give time for Kafka processing)
-    negotiation-requested-to-offered-delay-ms: 500
-    negotiation-offered-to-agreed-delay-ms: 500
-    negotiation-agreed-to-finalized-delay-ms: 500
+    negotiation-requested-to-offered-delay-ms: 2000
+    negotiation-offered-to-agreed-delay-ms: 3000
+    negotiation-agreed-to-finalized-delay-ms: 2000
 
     # Transfer process delays (give time for Kafka processing)
-    transfer-initial-to-provisioning-delay-ms: 1000
-    transfer-provisioning-to-started-delay-ms: 1000
-    transfer-started-to-completed-delay-ms: 1000
+    transfer-initial-to-provisioning-delay-ms: 5000
+    transfer-provisioning-to-started-delay-ms: 5000
+    transfer-started-to-completed-delay-ms: 5000
 
     # No failures in tests by default
     failure-rate: 0.0
