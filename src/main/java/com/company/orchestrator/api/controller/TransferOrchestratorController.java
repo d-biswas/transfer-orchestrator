@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +31,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(ApiConstants.API_VERSION)
-@Validated
 public class TransferOrchestratorController {
 
     private final TransferOrchestrator transferOrchestrator;
