@@ -60,7 +60,7 @@ spring:
         backoff-multiplier: 1.5
         max-interval: 1000
     listener:
-      concurrency: 1
+      concurrency: 3
       ack-mode: manual
     topics:
       transfer-requested:
@@ -95,7 +95,7 @@ edc:
     # Contract negotiation delays (give time for Kafka processing)
     negotiation-requested-to-offered-delay-ms: 2000
     negotiation-offered-to-agreed-delay-ms: 3000
-    negotiation-agreed-to-finalized-delay-ms: 2000
+    negotiation-agreed-to-finalized-delay-ms: 3000
 
     # Transfer process delays (give time for Kafka processing)
     transfer-initial-to-provisioning-delay-ms: 5000

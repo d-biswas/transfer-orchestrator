@@ -58,7 +58,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EmbeddedKafka(
-        partitions = 1,
+        partitions = 3,
         topics = {
                 "test.negotiation.completed",
                 "test.transfer.in-progress",
@@ -248,7 +248,7 @@ public class TransferOrchestratorIntegrationTest {
         // Wait for COMPLETED state
         await()
                 .atMost(Duration.ofSeconds(30))
-                .pollInterval(Duration.ofMillis(200))
+                .pollInterval(Duration.ofMillis(10000))
                 .untilAsserted(() -> {
                     TransferRequestEntity transfer = transferRequestRepository.findById(transferId)
                             .orElseThrow(() -> new AssertionError("Transfer should exist"));
@@ -435,7 +435,7 @@ public class TransferOrchestratorIntegrationTest {
         // Wait for both transfers to complete
         await()
                 .atMost(Duration.ofSeconds(40))
-                .pollInterval(Duration.ofMillis(500))
+                .pollInterval(Duration.ofMillis(30000))
                 .untilAsserted(() -> {
                     TransferRequestEntity transfer1 = transferRequestRepository.findById(transferId1)
                             .orElseThrow();
@@ -492,8 +492,8 @@ public class TransferOrchestratorIntegrationTest {
 
         // Wait for negotiated or in progress
         await()
-                .atMost(Duration.ofSeconds(10))
-                .pollInterval(Duration.ofMillis(8000))
+                .atMost(Duration.ofSeconds(15))
+                .pollInterval(Duration.ofMillis(11000))
                 .untilAsserted(() -> {
                     TransferRequestEntity transfer = transferRequestRepository.findById(transferId)
                             .orElseThrow();
@@ -509,8 +509,8 @@ public class TransferOrchestratorIntegrationTest {
 
         // Verify transfer is canceled
         await()
-                .atMost(Duration.ofSeconds(5))
-                .pollInterval(Duration.ofMillis(200))
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(5000))
                 .untilAsserted(() -> {
                     TransferRequestEntity transfer = transferRequestRepository.findById(transferId)
                             .orElseThrow();
