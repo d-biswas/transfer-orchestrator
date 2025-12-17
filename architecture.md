@@ -14,97 +14,61 @@ This diagram shows the main components and their interactions in the Transfer Or
 
 ```mermaid
 graph TB
-    subgraph Consumer["Consumer Application"]
-        BMW[Consumer Applications<br/>BMW, Audi, etc.]
-    end
+    %% Top Layer: Actor
+    Consumer[Consumer App]
 
-    subgraph Orchestrator["Transfer Orchestrator Service"]
-        API[REST API Layer]
-
-        subgraph Core["Core Modules"]
-            POLICY[Policy Evaluation Engine]
-            AUDIT[Audit Service]
-            TRANSFER[Transfer Orchestration Engine]
+    %% Middle Layer: Orchestrator
+    subgraph Orchestrator["Transfer Orchestrator"]
+        direction TB
+        API[API]
+        subgraph Core["Core"]
+            Orchestration[Orchestration]
+            Policy[Policy]
+            Audit[Audit]
         end
-
-        subgraph EDCInt["EDC Integration"]
-            EDC_CLIENT[EDC Client Adapter]
-            CALLBACK[Callback Handler]
-        end
-
-        subgraph Events["Event Processing"]
-            EVENT_PUBLISHER[Event Publisher]
-            EVENT_HANDLER[Event Handler]
+        subgraph Integration["Integration"]
+            EdcClient[EDC Client]
+            Callback[Callback]
+            Events[Events]
         end
     end
 
-    subgraph External["External Services"]
-        EDC[Eclipse Dataspace Connector]
-        S3[(S3 Data Lake)]
-    end
+    %% Right Layer: External systems
+    EDC[EDC Connector]
+    S3[(S3 Storage)]
 
-    subgraph Infra["Infrastructure Layer"]
-        KAFKA[Apache Kafka]
-        POSTGRES[(PostgreSQL)]
-        REDIS[(Redis Cache)]
-    end
+    %% Bottom Layer: Infra
+    DB[(DB)]
+    Kafka[(Event Bus)]
 
-    %% Consumer Interactions
-    BMW <--> API
-
-    %% Core Module Interactions
-    API --> TRANSFER
-    TRANSFER --> POLICY
-    TRANSFER --> AUDIT
-    TRANSFER --> EDC_CLIENT
-
-    %% EDC Integration
-    EDC_CLIENT <--> EDC
-    EDC --> CALLBACK
-
-    %% Event Processing
-    CALLBACK --> EVENT_PUBLISHER
-    EVENT_PUBLISHER --> KAFKA
-    KAFKA --> EVENT_HANDLER
-    EVENT_HANDLER --> TRANSFER
-
-    %% Data Delivery
-    TRANSFER -.-> S3
-    S3 -.-> BMW
-
-    %% Persistence
-    TRANSFER --> POSTGRES
-    AUDIT --> POSTGRES
-    POLICY --> REDIS
-
-    classDef consumer fill:#e1f5ff,stroke:#0066cc,stroke-width:2px
-    classDef orchestrator fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    classDef external fill:#d4edda,stroke:#28a745,stroke-width:2px
-    classDef infra fill:#f8d7da,stroke:#dc3545,stroke-width:2px
-
-    class BMW consumer
-    class API,POLICY,AUDIT,TRANSFER,EDC_CLIENT,CALLBACK,EVENT_PUBLISHER,EVENT_HANDLER orchestrator
-    class EDC,S3 external
-    class KAFKA,POSTGRES,REDIS infra
+    %% High-level flows
+    Consumer --> API
+    API --> Orchestration
+    Orchestration --> EdcClient
+    EdcClient --> EDC
+    Callback --> Events
+    Events --> Orchestration
+    Orchestration --> DB
+    Events --> Kafka
+    Orchestration -.-> S3
+    S3 -.-> Consumer
 ```
 
 ### Component Responsibilities
 
 | Component | Responsibility |
 |-----------|----------------|
-| **REST API Layer** | Exposes RESTful endpoints for transfer requests, status queries, and consumer interactions |
-| **Transfer Orchestration Engine** | Coordinates transfer lifecycle, state transitions, and multi-step workflows |
-| **Policy Evaluation Engine** | Evaluates composable policies (time-based, rate limit, geographic, certification) |
-| **Audit Service** | Records immutable audit logs for compliance, traceability, and analytics |
-| **EDC Client Adapter** | Abstracts EDC Management API for contract negotiation and transfer initiation |
-| **Callback Handler** | Receives and processes asynchronous callbacks from EDC connector |
-| **Event Publisher** | Publishes transfer lifecycle events to Kafka topics |
-| **Event Handler** | Consumes events from Kafka and triggers state updates in orchestration engine |
-| **Eclipse Dataspace Connector** | External EDC instance handling data sovereignty and contract enforcement |
-| **S3 Data Lake** | Optional external storage supporting pull and push data delivery patterns |
-| **PostgreSQL** | Primary transactional database for state, policies, and audit trails |
-| **Redis Cache** | In-memory cache for rate limiting, session state, and hot data |
-| **Apache Kafka** | Event streaming backbone for asynchronous, decoupled communication |
+| **API** | REST endpoints for transfer requests and status queries |
+| **Orchestration** | Coordinates transfer lifecycle and state transitions |
+| **Policy** | Evaluates access and usage policies |
+| **Audit** | Records immutable audit logs for compliance |
+| **EDC Client** | Communicates with EDC for contract negotiation and transfers |
+| **Callback** | Receives asynchronous callbacks from EDC |
+| **Events** | Manages event publishing and consumption via Kafka |
+| **EDC Connector** | External dataspace connector for data sovereignty |
+| **S3 Storage** | Optional data lake for pull-based data delivery |
+| **DB** | Persistent storage for state, policies, and audit trails |
+| **Event Bus** | Asynchronous event streaming infrastructure |
 
 ---
 
