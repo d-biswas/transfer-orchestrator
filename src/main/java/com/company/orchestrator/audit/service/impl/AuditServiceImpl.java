@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.company.orchestrator.utils.Constants.SYSTEM_ACTOR;
+
 /**
  * Implementation of AuditService using AuditLogRepository
  * Provides immutable audit trail and compliance reporting
@@ -33,7 +35,6 @@ import java.util.stream.Collectors;
 public class AuditServiceImpl implements AuditService {
 
     private final AuditLogRepository auditLogRepository;
-    private static final String SYSTEM_ACTOR = "SYSTEM";
 
     @Override
     @Transactional
