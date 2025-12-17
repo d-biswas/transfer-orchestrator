@@ -132,7 +132,6 @@ public class TransferStateServiceImpl implements TransferStateService {
      * Returns history in chronological order (oldest first)
      */
     @Override
-    @Transactional(readOnly = true)
     public List<TransferStateHistoryEntity> getStateHistory(Long transferId) {
         log.debug("Getting state history: transferId={}", transferId);
 
