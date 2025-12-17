@@ -1,6 +1,5 @@
 package com.company.orchestrator.infrastructure.events.handler;
 
-import com.company.orchestrator.api.exception.NotFoundException;
 import com.company.orchestrator.audit.service.AuditService;
 import com.company.orchestrator.domain.model.TransferStatus;
 import com.company.orchestrator.domain.service.TransferStateService;

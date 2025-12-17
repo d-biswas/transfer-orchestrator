@@ -7,7 +7,6 @@ import lombok.*;
 
 import java.io.Serial;
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transfer_state_history")

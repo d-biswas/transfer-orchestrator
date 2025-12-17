@@ -6,8 +6,6 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
-import java.io.Serializable;
-import java.time.Instant;
 
 /**
  * Event fired when transfer contract is successfully negotiated
