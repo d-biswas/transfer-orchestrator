@@ -14,35 +14,36 @@ This diagram shows the main components and their interactions in the Transfer Or
 
 ```mermaid
 graph TB
-    subgraph "Consumer Application"
+    subgraph Consumer["Consumer Application"]
         BMW[BMW Application]
     end
 
-    subgraph "Transfer Orchestrator Service"
+    subgraph Orchestrator["Transfer Orchestrator Service"]
         API[REST API Layer]
 
-        subgraph "Core Modules"
+        subgraph Core["Core Modules"]
             POLICY[Policy Evaluation Module]
             AUDIT[Audit Module]
             TRANSFER[Transfer State Management]
         end
 
-        subgraph "EDC Integration"
+        subgraph EDCInt["EDC Integration"]
             EDC_CLIENT[EDC Client]
             CALLBACK[EDC Callback Handler]
         end
 
-        subgraph "Event Processing"
+        subgraph Events["Event Processing"]
             KAFKA_PRODUCER[Kafka Producer]
             KAFKA_CONSUMER[Kafka Event Handler]
         end
     end
 
-    subgraph "External Services"
+    subgraph External["External Services"]
         EDC[EDC Connector<br/>Eclipse Dataspace Connector]
+        S3[(External S3 Storage<br/>Data Lake)]
     end
 
-    subgraph "Infrastructure"
+    subgraph Infra["Infrastructure"]
         KAFKA[Apache Kafka<br/>Event Streaming]
         POSTGRES[(PostgreSQL<br/>Primary Database)]
         REDIS[(Redis<br/>Cache)]
@@ -68,14 +69,19 @@ graph TB
     KAFKA -->|11. Consume Event| KAFKA_CONSUMER
     KAFKA_CONSUMER -->|12. Update State| TRANSFER
 
+    %% S3 Storage Flow (Optional)
+    TRANSFER -.->|13. Store Data to S3 Optional| S3
+    S3 -.->|Pull Data| BMW
+    TRANSFER -.->|Push Data Optional| BMW
+
     %% State Management
     TRANSFER -->|Read/Write| POSTGRES
     TRANSFER -->|Cache| REDIS
     AUDIT -->|Append-Only Logs| POSTGRES
 
     %% Response
-    TRANSFER -->|13. Return Status| API
-    API -->|14. Response| BMW
+    TRANSFER -->|14. Return Status| API
+    API -->|15. Response| BMW
 
     classDef consumer fill:#e1f5ff,stroke:#0066cc
     classDef orchestrator fill:#fff3cd,stroke:#ffc107
@@ -84,7 +90,7 @@ graph TB
 
     class BMW consumer
     class API,POLICY,AUDIT,TRANSFER,EDC_CLIENT,CALLBACK,KAFKA_PRODUCER,KAFKA_CONSUMER orchestrator
-    class EDC external
+    class EDC,S3 external
     class KAFKA,POSTGRES,REDIS infra
 ```
 
@@ -95,11 +101,12 @@ graph TB
 | **REST API Layer** | Handles HTTP requests, validation, response formatting |
 | **Policy Evaluation Module** | Evaluates time-based, rate limit, geographic, and certification policies |
 | **Audit Module** | Records immutable audit logs for compliance and traceability |
-| **Transfer State Management** | Manages transfer lifecycle state machine |
+| **Transfer State Management** | Manages transfer lifecycle state machine and data storage orchestration |
 | **EDC Client** | Communicates with EDC for contract negotiation and transfer initiation |
 | **EDC Callback Handler** | Receives asynchronous callbacks from EDC about transfer progress |
 | **Kafka Producer** | Publishes transfer lifecycle events |
 | **Kafka Event Handler** | Consumes events and updates transfer state |
+| **External S3 Storage** | Data lake for storing transferred data; supports consumer pull and orchestrator push patterns |
 | **PostgreSQL** | Primary data store for transfers, policies, and audit logs |
 | **Redis** | Caching layer for frequently accessed data |
 | **Kafka** | Event streaming platform for asynchronous communication |
