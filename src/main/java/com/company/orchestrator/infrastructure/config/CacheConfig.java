@@ -30,7 +30,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class CacheConfig {
     private static final Long TTL_IN_MINUTES = 10L;
-    private static final String CACHE_PREFIX = "cartup:product::v2::";
+    private static final String CACHE_PREFIX = "orchestrator::v1::";
     private final CacheProperties cacheProperties;
 
     @Bean
