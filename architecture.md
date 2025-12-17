@@ -15,81 +15,75 @@ This diagram shows the main components and their interactions in the Transfer Or
 ```mermaid
 graph TB
     subgraph Consumer["Consumer Application"]
-        BMW[BMW Application]
+        BMW[Consumer Applications<br/>BMW, Audi, etc.]
     end
 
     subgraph Orchestrator["Transfer Orchestrator Service"]
         API[REST API Layer]
 
         subgraph Core["Core Modules"]
-            POLICY[Policy Evaluation Module]
-            AUDIT[Audit Module]
-            TRANSFER[Transfer State Management]
+            POLICY[Policy Evaluation Engine]
+            AUDIT[Audit Service]
+            TRANSFER[Transfer Orchestration Engine]
         end
 
         subgraph EDCInt["EDC Integration"]
-            EDC_CLIENT[EDC Client]
-            CALLBACK[EDC Callback Handler]
+            EDC_CLIENT[EDC Client Adapter]
+            CALLBACK[Callback Handler]
         end
 
         subgraph Events["Event Processing"]
-            KAFKA_PRODUCER[Kafka Producer]
-            KAFKA_CONSUMER[Kafka Event Handler]
+            EVENT_PUBLISHER[Event Publisher]
+            EVENT_HANDLER[Event Handler]
         end
     end
 
     subgraph External["External Services"]
-        EDC[EDC Connector<br/>Eclipse Dataspace Connector]
-        S3[(External S3 Storage<br/>Data Lake)]
+        EDC[Eclipse Dataspace Connector]
+        S3[(S3 Data Lake)]
     end
 
-    subgraph Infra["Infrastructure"]
-        KAFKA[Apache Kafka<br/>Event Streaming]
-        POSTGRES[(PostgreSQL<br/>Primary Database)]
-        REDIS[(Redis<br/>Cache)]
+    subgraph Infra["Infrastructure Layer"]
+        KAFKA[Apache Kafka]
+        POSTGRES[(PostgreSQL)]
+        REDIS[(Redis Cache)]
     end
 
-    %% Consumer to Orchestrator
-    BMW -->|1. POST /api/v1/transfers| API
+    %% Consumer Interactions
+    BMW <--> API
 
-    %% Internal Flow
-    API -->|2. Validate Request| TRANSFER
-    TRANSFER -->|3. Evaluate Policies| POLICY
-    POLICY -->|4. Log Evaluation| AUDIT
-    TRANSFER -->|5. Persist State| POSTGRES
-    TRANSFER -->|6. Negotiate Contract| EDC_CLIENT
+    %% Core Module Interactions
+    API --> TRANSFER
+    TRANSFER --> POLICY
+    TRANSFER --> AUDIT
+    TRANSFER --> EDC_CLIENT
 
     %% EDC Integration
-    EDC_CLIENT -->|7. HTTP Request| EDC
-    EDC -->|8. Callback Events| CALLBACK
-    CALLBACK -->|9. Publish Events| KAFKA_PRODUCER
+    EDC_CLIENT <--> EDC
+    EDC --> CALLBACK
 
-    %% Kafka Flow
-    KAFKA_PRODUCER -->|10. Send Event| KAFKA
-    KAFKA -->|11. Consume Event| KAFKA_CONSUMER
-    KAFKA_CONSUMER -->|12. Update State| TRANSFER
+    %% Event Processing
+    CALLBACK --> EVENT_PUBLISHER
+    EVENT_PUBLISHER --> KAFKA
+    KAFKA --> EVENT_HANDLER
+    EVENT_HANDLER --> TRANSFER
 
-    %% S3 Storage Flow (Optional)
-    TRANSFER -.->|13. Store Data to S3 Optional| S3
-    S3 -.->|Pull Data| BMW
-    TRANSFER -.->|Push Data Optional| BMW
+    %% Data Delivery
+    TRANSFER -.-> S3
+    S3 -.-> BMW
 
-    %% State Management
-    TRANSFER -->|Read/Write| POSTGRES
-    TRANSFER -->|Cache| REDIS
-    AUDIT -->|Append-Only Logs| POSTGRES
+    %% Persistence
+    TRANSFER --> POSTGRES
+    AUDIT --> POSTGRES
+    POLICY --> REDIS
 
-    %% Response
-    TRANSFER -->|14. Return Status| API
-    API -->|15. Response| BMW
-
-    classDef consumer fill:#e1f5ff,stroke:#0066cc
-    classDef orchestrator fill:#fff3cd,stroke:#ffc107
-    classDef external fill:#d4edda,stroke:#28a745
-    classDef infra fill:#f8d7da,stroke:#dc3545
+    classDef consumer fill:#e1f5ff,stroke:#0066cc,stroke-width:2px
+    classDef orchestrator fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+    classDef external fill:#d4edda,stroke:#28a745,stroke-width:2px
+    classDef infra fill:#f8d7da,stroke:#dc3545,stroke-width:2px
 
     class BMW consumer
-    class API,POLICY,AUDIT,TRANSFER,EDC_CLIENT,CALLBACK,KAFKA_PRODUCER,KAFKA_CONSUMER orchestrator
+    class API,POLICY,AUDIT,TRANSFER,EDC_CLIENT,CALLBACK,EVENT_PUBLISHER,EVENT_HANDLER orchestrator
     class EDC,S3 external
     class KAFKA,POSTGRES,REDIS infra
 ```
@@ -98,18 +92,19 @@ graph TB
 
 | Component | Responsibility |
 |-----------|----------------|
-| **REST API Layer** | Handles HTTP requests, validation, response formatting |
-| **Policy Evaluation Module** | Evaluates time-based, rate limit, geographic, and certification policies |
-| **Audit Module** | Records immutable audit logs for compliance and traceability |
-| **Transfer State Management** | Manages transfer lifecycle state machine and data storage orchestration |
-| **EDC Client** | Communicates with EDC for contract negotiation and transfer initiation |
-| **EDC Callback Handler** | Receives asynchronous callbacks from EDC about transfer progress |
-| **Kafka Producer** | Publishes transfer lifecycle events |
-| **Kafka Event Handler** | Consumes events and updates transfer state |
-| **External S3 Storage** | Data lake for storing transferred data; supports consumer pull and orchestrator push patterns |
-| **PostgreSQL** | Primary data store for transfers, policies, and audit logs |
-| **Redis** | Caching layer for frequently accessed data |
-| **Kafka** | Event streaming platform for asynchronous communication |
+| **REST API Layer** | Exposes RESTful endpoints for transfer requests, status queries, and consumer interactions |
+| **Transfer Orchestration Engine** | Coordinates transfer lifecycle, state transitions, and multi-step workflows |
+| **Policy Evaluation Engine** | Evaluates composable policies (time-based, rate limit, geographic, certification) |
+| **Audit Service** | Records immutable audit logs for compliance, traceability, and analytics |
+| **EDC Client Adapter** | Abstracts EDC Management API for contract negotiation and transfer initiation |
+| **Callback Handler** | Receives and processes asynchronous callbacks from EDC connector |
+| **Event Publisher** | Publishes transfer lifecycle events to Kafka topics |
+| **Event Handler** | Consumes events from Kafka and triggers state updates in orchestration engine |
+| **Eclipse Dataspace Connector** | External EDC instance handling data sovereignty and contract enforcement |
+| **S3 Data Lake** | Optional external storage supporting pull and push data delivery patterns |
+| **PostgreSQL** | Primary transactional database for state, policies, and audit trails |
+| **Redis Cache** | In-memory cache for rate limiting, session state, and hot data |
+| **Apache Kafka** | Event streaming backbone for asynchronous, decoupled communication |
 
 ---
 
