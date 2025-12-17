@@ -78,133 +78,75 @@ This diagram shows the complete flow when BMW initiates a data transfer request.
 
 ```mermaid
 sequenceDiagram
-    participant BMW as BMW Application
+    participant BMW as BMW App
     participant API as Orchestrator API
     participant Policy as Policy Engine
     participant DB as PostgreSQL
     participant Audit as Audit Service
     participant EDC_Client as EDC Client
     participant EDC as EDC Connector
-    participant Kafka as Apache Kafka
+    participant Kafka as Kafka
     participant Handler as Event Handler
-    participant Redis as Redis Cache
+    participant S3 as S3 Storage
 
-    Note over BMW,Redis: Transfer Initiation Flow
+    Note over BMW,API: Transfer Request Phase
+    BMW->>API: POST /transfers {consumerId, assetId}
+    API->>Policy: Evaluate Policies
+    Policy-->>API: Decision: APPROVED
+    API->>DB: Save / Update Transfer State
+    API->>Audit: Log Event
+    API-->>BMW: 202 Accepted {transferId, status}
 
-    %% Step 1-5: Request Processing
-    BMW->>+API: POST /api/v1/transfers<br/>{consumerId: "BMW", assetId: "..."}
-    API->>API: Validate Request
-    API->>+DB: Save Transfer (Status: REQUESTED)
-    DB-->>-API: Transfer ID: 123
-    API->>+Audit: Log Event (TRANSFER_REQUESTED)
-    Audit->>DB: Insert Audit Log
-    Audit-->>-API: Logged
-
-    %% Step 6-8: Policy Evaluation
-    Note over API,Policy: Policy Evaluation Phase
-    API->>+Policy: Evaluate Policies<br/>(Time, Rate, Geographic, Cert)
-    Policy->>Redis: Check Rate Limit Cache
-    Redis-->>Policy: Rate Limit Status
-    Policy->>Policy: Evaluate All Policies
-    Policy-->>-API: Decision: APPROVED
-
-    API->>+DB: Update Status (APPROVED)
-    DB-->>-API: Updated
-    API->>+Audit: Log Event (POLICY_APPROVED)
-    Audit->>DB: Insert Audit Log
-    Audit-->>-API: Logged
-
-    API-->>-BMW: 202 Accepted<br/>{id: 123, status: "APPROVED"}
-
-    %% Step 9-12: Contract Negotiation (Async)
     Note over API,EDC: Contract Negotiation Phase (Async)
-    API->>+EDC_Client: Negotiate Contract
-    EDC_Client->>+EDC: POST /negotiations<br/>{offerId, assetId, policy}
-    EDC-->>-EDC_Client: Negotiation ID: neg-456
-    EDC_Client->>+DB: Update (Status: NEGOTIATING)
-    DB-->>-EDC_Client: Updated
-    EDC_Client-->>-API: Negotiation Started
+    API->>EDC_Client: Negotiate Contract
+    EDC_Client->>EDC: Start Negotiation
+    EDC-->>EDC_Client: Negotiation ID
+    EDC_Client-->>API: Negotiation Started
+    EDC->>API: Callback {status: FINALIZED, agreementId}
+    API->>Kafka: Publish CONTRACT_NEGOTIATED
+    Kafka->>Handler: Consume & Update State / Log
 
-    %% Step 13-15: EDC Callback - Contract Agreed
-    Note over EDC,Handler: EDC Async Callbacks
-    EDC->>+API: POST /callback/negotiations<br/>{status: "FINALIZED", agreementId: "agr-789"}
-    API->>+Kafka: Publish (CONTRACT_NEGOTIATED)
-    Kafka-->>-API: Published
-    API-->>-EDC: 200 OK
+    Note over Handler,EDC: Transfer Execution Phase
+    Handler->>EDC_Client: Initiate Transfer
+    EDC_Client->>EDC: Start Transfer
+    EDC->>API: Transfer Status Updates
+    API->>Kafka: Publish Transfer Events
+    Kafka->>Handler: Consume & Update State / Log
 
-    Kafka->>+Handler: Consume (CONTRACT_NEGOTIATED)
-    Handler->>+DB: Update (Status: NEGOTIATED, agreementId)
-    DB-->>-Handler: Updated
-    Handler->>+Audit: Log Event (CONTRACT_NEGOTIATED)
-    Audit->>DB: Insert Audit Log
-    Audit-->>-Handler: Logged
-    Handler-->>-Kafka: Acknowledged
-
-    %% Step 16-18: Transfer Initiation
-    Note over Handler,EDC: Transfer Initiation Phase
-    Handler->>+EDC_Client: Initiate Transfer
-    EDC_Client->>+EDC: POST /transfers<br/>{agreementId: "agr-789"}
-    EDC-->>-EDC_Client: Transfer Process ID: tp-999
-    EDC_Client->>+DB: Update (Status: TRANSFER_IN_PROGRESS)
-    DB-->>-EDC_Client: Updated
-    EDC_Client-->>-Handler: Transfer Started
-
-    %% Step 19-21: Transfer Progress Updates
-    EDC->>+API: POST /callback/transfers<br/>{status: "STARTED", processId: "tp-999"}
-    API->>+Kafka: Publish (TRANSFER_IN_PROGRESS)
-    Kafka-->>-API: Published
-    API-->>-EDC: 200 OK
-
-    Kafka->>+Handler: Consume (TRANSFER_IN_PROGRESS)
-    Handler->>+DB: Update (Status: TRANSFER_IN_PROGRESS)
-    DB-->>-Handler: Updated
-    Handler->>+Audit: Log Event (TRANSFER_STARTED)
-    Audit->>DB: Insert Audit Log
-    Audit-->>-Handler: Logged
-    Handler-->>-Kafka: Acknowledged
-
-    %% Step 22: Transfer Completion Notification (Just Log)
-    Note over EDC,API: Transfer Completion Notification
-    EDC->>+API: POST /callback/transfers<br/>{status: "COMPLETED", processId: "tp-999"}
-    API->>API: Log Info (Transfer Completed)
-    API-->>-EDC: 200 OK
-
-    %% Step 23-28: Data Delivery & Final Processing
-    Note over EDC,Handler: Data Delivery & State Finalization
-    EDC->>+API: POST /data/receive<br/>{transferId: 123, data: {...}}
-    API->>+Kafka: Publish (TRANSFER_COMPLETED)
-    Kafka-->>-API: Published
-
-    Kafka->>+Handler: Consume (TRANSFER_COMPLETED)
-    Handler->>+DB: Update (Status: COMPLETED)
-    DB-->>-Handler: Updated
-    Handler->>+Audit: Log Event (TRANSFER_COMPLETED)
-    Audit->>DB: Insert Audit Log
-    Audit-->>-Handler: Logged
-    Handler-->>-Kafka: Acknowledged
-
-    API->>+DB: Store Data
-    DB-->>-API: Stored
-    API-->>-EDC: 200 OK
+    Note over Handler,S3: Data Delivery Phase
+    EDC->>API: POST /data/receive {transferId, data}
+    API->>Kafka: Publish TRANSFER_COMPLETED
+    Kafka->>Handler: Consume & Update State / Log
+    API->>DB: Store Data
+    API->>S3: Persist Data
 ```
 
 ### Flow Summary
 
-1. **Transfer Request** - BMW submits transfer request via REST API
-2. **Validation** - API validates and persists request (Status: REQUESTED)
-3. **Policy Evaluation** - Policy engine evaluates all applicable policies
-4. **Approval** - If approved, status changes to APPROVED
-5. **Contract Negotiation** - EDC Client initiates contract negotiation with EDC
-6. **EDC Callback** - EDC sends callback when contract is finalized
-7. **Kafka Event** - Callback publishes event to Kafka
-8. **Event Processing** - Event handler consumes event and updates status
-9. **Transfer Initiation** - Transfer process starts with EDC
-10. **Progress Updates** - EDC sends progress callbacks via Kafka
-11. **Completion Notification** - EDC sends `/callback/transfers` with COMPLETED status (orchestrator just logs)
-12. **Data Delivery** - EDC sends actual data to orchestrator via `/data/receive` callback
-13. **State Finalization** - Orchestrator publishes TRANSFER_COMPLETED event to Kafka
-14. **Kafka Processing** - Event handler updates status to COMPLETED and logs audit trail
-15. **Data Storage** - Orchestrator stores received data to PostgreSQL
+#### Phase 1: Transfer Request
+1. Consumer submits transfer request to API
+2. Policy engine evaluates policies and returns decision
+3. API persists state to database and logs audit event
+4. Consumer receives async acknowledgment with transfer ID
+
+#### Phase 2: Contract Negotiation (Async)
+5. API initiates contract negotiation via EDC Client
+6. EDC connector processes negotiation and returns negotiation ID
+7. EDC sends callback when contract is finalized
+8. API publishes CONTRACT_NEGOTIATED event to Kafka
+9. Event handler consumes event and updates transfer state
+
+#### Phase 3: Transfer Execution
+10. Event handler triggers transfer initiation via EDC Client
+11. EDC connector starts data transfer process
+12. EDC sends status updates to API during transfer
+13. API publishes transfer events; handler updates state
+
+#### Phase 4: Data Delivery
+14. EDC delivers data to orchestrator via callback
+15. API publishes TRANSFER_COMPLETED event to Kafka
+16. Event handler updates final state and logs completion
+17. API persists data to database and optionally to S3 storage
 
 ---
 
