@@ -19,9 +19,9 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class BaseTransferEvent implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
 
+    @Serial
+    private static final long serialVersionUID = -8640387543733173749L;
     /** Transfer ID */
     private Long transferId;
 

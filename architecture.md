@@ -205,14 +205,6 @@ Primary table storing all transfer requests and their current state.
 - `consumer_id` / `provider_id` - Business partner identifiers
 - `version` - Optimistic locking to prevent concurrent updates
 
-**Indexes:**
-```sql
-CREATE INDEX idx_transfer_status ON transfer_requests(status);
-CREATE INDEX idx_transfer_consumer ON transfer_requests(consumer_id);
-CREATE INDEX idx_transfer_created_at ON transfer_requests(created_at);
-CREATE INDEX idx_transfer_provider ON transfer_requests(provider_id);
-```
-
 **Optimistic Locking:**
 Uses `@Version` annotation for concurrent update detection - prevents race conditions when multiple processes update the same transfer.
 
@@ -237,24 +229,6 @@ Append-only immutable audit trail for compliance and traceability.
 - **Consumer-scoped** - Can track all events for a consumer across transfers
 - **Indexed** - Fast queries by transfer_id, consumer_id, and timestamp
 
-**Indexes:**
-```sql
-CREATE INDEX idx_audit_transfer ON audit_logs(transfer_id);
-CREATE INDEX idx_audit_consumer ON audit_logs(consumer_id);
-CREATE INDEX idx_audit_created_at ON audit_logs(created_at);
-CREATE INDEX idx_audit_event_type ON audit_logs(event_type);
-```
-
-**Example Metadata:**
-```json
-{
-  "policyType": "RateLimitPolicy",
-  "limit": 100,
-  "current": 45,
-  "timeWindow": "1h"
-}
-```
-
 ---
 
 #### TRANSFER_STATE_HISTORY
@@ -273,24 +247,9 @@ Tracks all state transitions for each transfer.
 - **Debugging** - Investigate stuck transfers or unexpected transitions
 - **SLA Tracking** - Measure transfer completion times
 
-**Indexes:**
-```sql
-CREATE INDEX idx_state_history_transfer ON transfer_state_history(transfer_id);
-CREATE INDEX idx_state_history_changed_at ON transfer_state_history(changed_at);
-```
-
 **Differences from AUDIT_LOGS:**
 - **TRANSFER_STATE_HISTORY**: Only state transitions (lightweight, structured)
 - **AUDIT_LOGS**: All events including policy evaluations, errors, etc. (comprehensive, flexible)
-
-**Example Query - Average Time in Each State:**
-```sql
-SELECT
-  to_state,
-  AVG(EXTRACT(EPOCH FROM (changed_at - LAG(changed_at) OVER (PARTITION BY transfer_id ORDER BY changed_at)))) as avg_seconds
-FROM transfer_state_history
-GROUP BY to_state;
-```
 
 ---
 
@@ -524,38 +483,6 @@ Infrastructure Layer (Repositories, Clients, Kafka)
 - Exponential backoff for transient failures (future)
 - Circuit breaker for cascading failures (future)
 - Dead Letter Queue for non-retriable errors
-
----
-
-## Deployment Architecture (Future)
-
-```
-┌─────────────────────────────────────────────────────┐
-│                  Infrastructure                     │
-├─────────────────────────────────────────────────────┤
-│  ┌──────────────────────────────────────────────┐   │
-│  │  Orchestrator Service (Pods: 3)              │   │
-│  │  - HPA: CPU > 70%                            │   │
-│  │  - Resource Limits: 2CPU, 4GB RAM            │   │
-│  └──────────────────────────────────────────────┘   │
-│                         ↓                           │
-│  ┌──────────────────────────────────────────────┐   │
-│  │  PostgreSQL (StatefulSet)                    │   │
-│  │  - Persistent Volume: 100GB                  │   │
-│  │  - Backup: Daily to S3                     │   │
-│  └──────────────────────────────────────────────┘   │
-│                                                     │
-│  ┌──────────────────────────────────────────────┐   │
-│  │  Kafka Cluster (StatefulSet: 3 Brokers)      │   │
-│  │  - Zookeeper: 3 nodes                        │   │
-│  └──────────────────────────────────────────────┘   │
-│                                                     │
-│  ┌──────────────────────────────────────────────┐   │
-│  │  Redis (StatefulSet)                         │   │
-│  │  - Sentinel for HA                           │   │
-│  └──────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────┘
-```
 
 ---
 

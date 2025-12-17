@@ -1,6 +1,6 @@
 # Transfer Orchestration Service
 
-A Spring Boot microservice that acts as an intelligent orchestration layer on top of **Eclipse Dataspace Connector (EDC)** for the Catena-X automotive supply chain ecosystem.
+A Spring Boot microservice serving as an intelligent orchestration layer for the Catena-X automotive supply chain ecosystem (with Mock EDC for testing).
 
 ## Features
 
@@ -78,6 +78,8 @@ java -jar build/libs/transfer-orchestrator-0.0.1-SNAPSHOT.jar
 ```bash
 # Build Docker image
 ./gradlew clean dockerBuildImage
+
+# ⚠️ Make sure the following ports are free before starting: 8080, 5006, 5432, 6379, 2181, 9092, 29092, 8081
 
 # Run with docker-compose (includes all dependencies)
 docker-compose up -d
@@ -194,7 +196,6 @@ com.company.orchestrator
  │   ├── model/           # Entities, value objects
  │   └── service/         # Business logic
  ├── policy/
- │   ├── engine/          # Policy evaluation
  │   ├── model/           # Policy definitions
  │   └── service/         # Policy services
  ├── audit/
@@ -211,7 +212,7 @@ com.company.orchestrator
 
 ## Additional Documentation
 
-- [architechture.md](observability.md) - System architecture & design
+- [architechture.md](architecture.md) - System architecture & design
 - [design-decisions.md](design-decisions.md) - Key design choices
 - [observability.md](observability.md) - Monitoring & metrics
 
