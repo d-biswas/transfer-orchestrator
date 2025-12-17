@@ -1,8 +1,8 @@
 package com.company.orchestrator.infrastructure.config;
 
 import com.company.orchestrator.infrastructure.props.HttpClientProperties;
-import com.company.orchestrator.infrastructure.utils.InstantDeserializer;
-import com.company.orchestrator.infrastructure.utils.InstantSerializer;
+import com.company.orchestrator.utils.InstantDeserializer;
+import com.company.orchestrator.utils.InstantSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

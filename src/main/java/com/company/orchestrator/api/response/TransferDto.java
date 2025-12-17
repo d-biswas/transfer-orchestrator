@@ -2,8 +2,8 @@ package com.company.orchestrator.api.response;
 
 import com.company.orchestrator.domain.model.DataType;
 import com.company.orchestrator.domain.model.TransferStatus;
-import com.company.orchestrator.infrastructure.utils.InstantDeserializer;
-import com.company.orchestrator.infrastructure.utils.InstantSerializer;
+import com.company.orchestrator.utils.InstantDeserializer;
+import com.company.orchestrator.utils.InstantSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;

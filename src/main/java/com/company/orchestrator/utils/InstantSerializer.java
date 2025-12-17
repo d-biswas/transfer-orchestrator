@@ -1,4 +1,4 @@
-package com.company.orchestrator.infrastructure.utils;
+package com.company.orchestrator.utils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
