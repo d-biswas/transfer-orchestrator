@@ -158,7 +158,7 @@ public class AuditServiceUnitTest {
                 .createdAt(Instant.now())
                 .build();
 
-        when(auditLogRepository.findByTransferIdOrderByCreatedAtDesc(1L))
+        when(auditLogRepository.findByTransferIdOrderByCreatedAtAsc(1L))
                 .thenReturn(List.of(entity));
 
         List<AuditEvent> events = auditService.getAuditLogsByTransferId(1L);

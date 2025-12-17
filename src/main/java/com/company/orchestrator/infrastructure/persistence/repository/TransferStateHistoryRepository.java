@@ -9,7 +9,5 @@ import java.util.List;
 @Repository
 public interface TransferStateHistoryRepository extends JpaRepository<TransferStateHistoryEntity, Long> {
 
-    List<TransferStateHistoryEntity> findByTransferIdOrderByChangedAtDesc(Long transferId);
-
     List<TransferStateHistoryEntity> findByTransferIdOrderByChangedAtAsc(Long transferId);
 }

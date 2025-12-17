@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLogEntity, Long>, AuditLogRepositoryCustom {
 
-    List<AuditLogEntity> findByTransferIdOrderByCreatedAtDesc(Long transferId);
+    List<AuditLogEntity> findByTransferIdOrderByCreatedAtAsc(Long transferId);
 
     List<AuditLogEntity> findAllByTransferId(Long transferId);
 

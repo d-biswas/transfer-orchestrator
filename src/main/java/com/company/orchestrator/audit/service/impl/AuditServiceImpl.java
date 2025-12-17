@@ -145,7 +145,7 @@ public class AuditServiceImpl implements AuditService {
         log.debug("Fetching audit logs for the transfer: {}", transferId);
 
         List<AuditLogEntity> entities = auditLogRepository
-                .findByTransferIdOrderByCreatedAtDesc(transferId);
+                .findByTransferIdOrderByCreatedAtAsc(transferId);
 
         return entities.stream()
                 .map(this::toAuditEvent)

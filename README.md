@@ -128,7 +128,7 @@ docker-compose up -d
 - `GET /actuator/prometheus` - Prometheus metrics
 
 ### Documentation
-- `GET /swagger-ui.html` - Swagger UI
+- `GET /swagger-ui/index.html` - Swagger UI
 - `GET /v3/api-docs` - OpenAPI spec (JSON)
 
 ---
