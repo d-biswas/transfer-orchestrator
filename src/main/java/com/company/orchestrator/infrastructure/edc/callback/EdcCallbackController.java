@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.Map;
 
-import static com.company.orchestrator.domain.utils.Constants.SYSTEM_ACTOR;
+import static com.company.orchestrator.utils.Constants.SYSTEM_ACTOR;
 
 /**
  * Controller for handling EDC callbacks and data reception

@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static com.company.orchestrator.domain.utils.Constants.SYSTEM_ACTOR;
+import static com.company.orchestrator.utils.Constants.SYSTEM_ACTOR;
 
 /**
  * Orchestrator facade for managing end-to-end transfer lifecycle

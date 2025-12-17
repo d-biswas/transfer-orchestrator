@@ -1,4 +1,4 @@
-package com.company.orchestrator.domain.utils;
+package com.company.orchestrator.utils;
 
 import lombok.NoArgsConstructor;
 
